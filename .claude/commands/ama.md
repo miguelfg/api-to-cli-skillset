@@ -1,0 +1,1 @@
+Use the askUserQuestion tool to ask me anything about how to $ARGUMENTS
