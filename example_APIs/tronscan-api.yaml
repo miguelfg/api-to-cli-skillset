@@ -1,0 +1,284 @@
+openapi: 3.0.0
+info:
+  title: Tronscan API
+  version: 1.0.0
+  description: TRON blockchain explorer API for querying accounts, transactions, blocks,
+    and smart contracts
+  contact:
+    name: Tronscan Team
+    url: https://tronscan.org
+  license:
+    name: Apache 2.0
+servers:
+- url: https://apilist.tronscan.org
+paths:
+  /api/account:
+    get:
+      summary: Get account information by address
+      tags:
+      - Accounts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/account/{address}/votes:
+    get:
+      summary: Get voting information for an account
+      tags:
+      - Accounts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/accountlist:
+    get:
+      summary: Get paginated list of accounts
+      tags:
+      - Accounts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/transaction:
+    get:
+      summary: Get transaction details by hash
+      tags:
+      - Transactions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/transaction/count:
+    get:
+      summary: Get total transaction count
+      tags:
+      - Transactions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/transactionlist:
+    get:
+      summary: Get paginated list of transactions
+      tags:
+      - Transactions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/transactioncount:
+    get:
+      summary: Get transaction count statistics
+      tags:
+      - Transactions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/block:
+    get:
+      summary: Get block information by number
+      tags:
+      - Blocks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/blocklist:
+    get:
+      summary: Get paginated list of blocks
+      tags:
+      - Blocks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/blockcount:
+    get:
+      summary: Get total block count
+      tags:
+      - Blocks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/contract:
+    get:
+      summary: Get smart contract information
+      tags:
+      - SmartContracts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/contractlist:
+    get:
+      summary: Get paginated list of smart contracts
+      tags:
+      - SmartContracts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/transfer:
+    get:
+      summary: Get token transfer information
+      tags:
+      - Transfers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/transferlist:
+    get:
+      summary: Get paginated list of token transfers
+      tags:
+      - Transfers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/token:
+    get:
+      summary: Get token information
+      tags:
+      - Tokens
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/tokenlist:
+    get:
+      summary: Get paginated list of tokens
+      tags:
+      - Tokens
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/chain/parameters:
+    get:
+      summary: Get blockchain network parameters
+      tags:
+      - Network
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /api/chain/stat:
+    get:
+      summary: Get blockchain statistics
+      tags:
+      - Network
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
