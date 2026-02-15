@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **API-to-CLI Skillset** is a Claude Code skillset project that provides two complementary skills for converting API documentation into Python Click CLI projects:
 
-1. **`api-doc-2-py-client-prd`** — Generates a comprehensive PRD.md from an OpenAPI specification (JSON/YAML file or URL)
-2. **`prd-to-cli-generator`** — Generates a full production-ready Python Click CLI project from a PRD.md file
+1. **`api-to-prd`** — Generates a comprehensive PRD.md from an OpenAPI specification (JSON/YAML file or URL)
+2. **`prd-to-cli`** — Generates a full production-ready Python Click CLI project from a PRD.md file
 
 **Goal:** Enable developers to quickly build and test API integrations without manual client/CLI boilerplate.
 
@@ -18,25 +18,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 OpenAPI Spec (JSON/YAML)
     ↓
-[api-doc-2-py-client-prd skill]
+[api-to-prd skill]
     ↓
 PRD.md (comprehensive API documentation with code examples)
     ↓
-[prd-to-cli-generator skill]
+[prd-to-cli skill]
     ↓
 Python Click CLI Project (full project structure with batch processing)
 ```
 
 ### Skill Components
 
-**`skills/api-doc-2-py-client-prd/`**
+**`skills/api-to-prd/`**
 - **Purpose:** Parse OpenAPI specs and generate detailed PRD.md
 - **Input:** OpenAPI/Swagger JSON/YAML file or URL
 - **Output:** PRD.md with installation, authentication, endpoint reference, code examples, best practices
 - **Key Script:** `scripts/generate_prd.py` — Main parser and generator
 - **References:** `references/openapi_mapping.md`, `references/prd_template.md`
 
-**`skills/prd-to-cli-generator/`**
+**`skills/prd-to-cli/`**
 - **Purpose:** Parse PRD.md and generate a full Click CLI project
 - **Input:** PRD.md file
 - **User Configuration:** Batch formats, output formats, timestamp patterns (via `askUserQuestion`)
@@ -73,10 +73,10 @@ Python Click CLI Project (full project structure with batch processing)
 
 ```bash
 # Skill 1: Generate PRD from OpenAPI
-/api-doc-2-py-client-prd @example_APIs/petstore.json
+/api-to-prd @example_APIs/petstore.json
 
 # Skill 2: Generate Click CLI from PRD
-/prd-to-cli-generator @example_PRDs/PRD.md
+/prd-to-cli @example_PRDs/PRD.md
 # User answers questions about batch formats, output options, timestamp format
 # → Generates full project in output directory
 ```
@@ -141,7 +141,7 @@ POST,/pet,Fluffy,available
 {"method": "POST", "endpoint": "/pet", "name": "Fluffy"}
 ```
 
-See `skills/prd-to-cli-generator/references/input_format_specs.md` for complete specs.
+See `skills/prd-to-cli/references/input_format_specs.md` for complete specs.
 
 ## Example APIs for Testing
 
