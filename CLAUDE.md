@@ -81,6 +81,83 @@ Python Click CLI Project (full project structure with batch processing)
 # → Generates full project in output directory
 ```
 
+## Using askUserQuestion for Fast-Paced Narrowing
+
+When implementing skills that need to handle vague or open-ended user requests, use `askUserQuestion` with focused, fast-paced questions to narrow requests into specific, actionable tasks.
+
+### Pattern: Question Cascade
+
+**1. Maximum 4 questions per round** — Keep interactions snappy; avoid overwhelming users with too many choices at once.
+
+**2. Question prioritization** — Ask the most critical decision first:
+   - What is the scope? (this determines everything else)
+   - What format/output? (enables specific generation)
+   - How to handle edge cases? (configuration details)
+
+**3. Build on answers** — Each answer informs the next question. Use context from prior answers to make subsequent questions more relevant.
+
+**Example from `prd-to-cli`:**
+
+```
+Question 1: Batch input formats?  (narrows to CSV, TXT, or both)
+  ↓ User answers: "CSV and TXT"
+Question 2: Project details?  (name, output path)
+  ↓ User answers: "my_client, ./projects"
+Question 3: Output formats?  (JSON, CSV, XLSX selection)
+  ↓ User answers: "JSON and XLSX"
+Question 4: Timestamp configuration?  (include? format?)
+  ↓ User answers: "Yes, YYYYMMDD_HHMMSS"
+  → Generate with all preferences configured
+```
+
+### Best Practices
+
+**Do:**
+- Ask one decision per question (mutually exclusive options)
+- Provide 2-4 options per question
+- Use clear, specific language: "Batch input formats?" vs vague "What do you want?"
+- Include descriptions for each option to aid understanding
+- Start broad, narrow down with follow-ups
+
+**Don't:**
+- Ask 5+ questions in one round (user context exhaustion)
+- Mix multiple decisions in one question ("formats AND destination?")
+- Assume prior context from previous skill invocations (each session is fresh)
+- Leave questions open-ended ("How should we configure this?")
+
+### Implementation Example
+
+```python
+from src.batch_processor import BatchProcessor
+from src.config import Config
+
+# Ask questions to gather configuration
+questions = [
+    {
+        "question": "Which batch input formats to accept?",
+        "header": "Input Formats",
+        "options": [
+            {"label": "CSV only", "description": "Comma-separated values"},
+            {"label": "TXT (JSON Lines) only", "description": "One JSON object per line"},
+            {"label": "Both CSV and TXT", "description": "Maximum flexibility"}
+        ]
+    },
+    {
+        "question": "Output format preferences?",
+        "header": "Output Formats",
+        "multiSelect": True,
+        "options": [
+            {"label": "JSON", "description": "Structured data (default)"},
+            {"label": "CSV", "description": "Tabular format"},
+            {"label": "XLSX", "description": "Excel workbook"}
+        ]
+    }
+]
+
+# User answers flow into generation logic
+# → Generates configuration automatically
+```
+
 ## Key Development Patterns
 
 ### PRD.md Structure
