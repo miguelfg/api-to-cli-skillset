@@ -1,4 +1,4 @@
-Update the skill skills/api-to-prd/SKILL.md with the following content:
+Update the skill skills/doc-to-prd/SKILL.md with the following content:
 - use async python library for requests like httpx
 - specify in the PRD to:
     - use uvicorn as CLI project management tool

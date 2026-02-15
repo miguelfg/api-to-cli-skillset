@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **API-to-CLI Skillset** is a Claude Code skillset project that provides two complementary skills for converting API documentation into Python Click CLI projects:
 
-1. **`api-to-prd`** — Generates a comprehensive PRD.md from an OpenAPI specification (JSON/YAML file or URL)
+1. **`doc-to-prd`** — Generates a comprehensive PRD.md from an OpenAPI specification (JSON/YAML file or URL)
 2. **`prd-to-cli`** — Generates a full production-ready Python Click CLI project from a PRD.md file
 
 **Goal:** Enable developers to quickly build and test API integrations without manual client/CLI boilerplate.
@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 OpenAPI Spec (JSON/YAML)
     ↓
-[api-to-prd skill]
+[doc-to-prd skill]
     ↓
 PRD.md (comprehensive API documentation with code examples)
     ↓
@@ -29,7 +29,7 @@ Python Click CLI Project (full project structure with batch processing)
 
 ### Skill Components
 
-**`skills/api-to-prd/`**
+**`skills/doc-to-prd/`**
 - **Purpose:** Parse OpenAPI specs and generate detailed PRD.md
 - **Input:** OpenAPI/Swagger JSON/YAML file or URL
 - **Output:** PRD.md with installation, authentication, endpoint reference, code examples, best practices
@@ -73,7 +73,7 @@ Python Click CLI Project (full project structure with batch processing)
 
 ```bash
 # Skill 1: Generate PRD from OpenAPI
-/api-to-prd @example_APIs/petstore.json
+/doc-to-prd @example_APIs/petstore.json
 
 # Skill 2: Generate Click CLI from PRD
 /prd-to-cli @example_PRDs/PRD.md

@@ -1,5 +1,5 @@
 ---
-name: python-API-client-PRD
+name: doc-to-prd
 description: Creates a PRD for a Python API client based on a given API specification or documentation (online or offline).
 ---
 
