@@ -3,6 +3,29 @@ name: doc-to-prd
 description: Creates a PRD for a Python API client based on a given API specification or documentation (online or offline).
 ---
 
+## Expected Parameters
+
+```
+/doc-to-prd <API_SPEC_PATH> [OUTPUT_PATH]
+```
+
+**Parameters:**
+- `API_SPEC_PATH` (required): Path to API specification file
+  - Accepts OpenAPI YAML/JSON files (e.g., `openapi.yaml`, `swagger.json`)
+  - Can be a file path or URL to an OpenAPI spec
+  - Example: `/doc-to-prd @openapi.yaml` or `/doc-to-prd https://api.example.com/openapi.json`
+- `OUTPUT_PATH` (optional): Path or directory where the generated `PRD.md` will be saved
+  - Can be a filename: `PRD.md`, `my-api-prd.md`
+  - Can be a directory: `./docs/`, will create `PRD.md` inside
+  - Default: `PRD.md` in current directory
+  - Example: `/doc-to-prd @openapi.yaml ./docs/my-api-prd.md`
+
+**Output:** Generated `PRD.md` file at specified location (or current directory if not specified)
+
+---
+
+## Overview
+
 Creates a PRD.md file that gathers the API documentation in a structured format suitable for Python developers. Plus, it includes requests, response and code examples, usage guidelines, and best practices for integrating the API into Python applications. It also uses askUserQuestion tool to confirm user preferences, like:
   - preferred Python libraries for HTTP requests (e.g., requests, httpx, aiohttp)
   - full list of tackled enpoints

@@ -7,6 +7,27 @@ description: Generate a production-ready Python Click CLI project from a PRD.md 
 
 Generate production-ready Python Click CLI projects from API documentation PRD.md files. The skill parses your PRD, extracts API resources and endpoints, then generates a complete project with one subcommand per resource, batch processing capabilities, and configurable output formats.
 
+## Expected Parameters
+
+```
+/prd-to-cli <PRD_FILE_PATH> <OUTPUT_FOLDER>
+```
+
+**Parameters:**
+- `PRD_FILE_PATH` (required): Path to the PRD.md file
+  - Example: `/prd-to-cli @path/to/PRD.md`
+- `OUTPUT_FOLDER` (required): Directory where the generated CLI project will be created
+  - Example: `/prd-to-cli @PRD.md ./projects`
+
+**Interactive Configuration:**
+The skill will prompt for:
+- Project name
+- Batch input formats (CSV, TXT, or both)
+- Output formats (JSON, CSV, XLSX)
+- Timestamp configuration (format and inclusion in filenames)
+
+**Output:** Complete project structure in the specified output folder
+
 ## Quick Start
 
 Invoke the skill with a PRD.md file path:
