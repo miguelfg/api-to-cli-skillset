@@ -1,0 +1,288 @@
+openapi: 3.0.0
+info:
+  title: Tronscan API
+  version: 1.0.0
+  description: TRON blockchain explorer API for querying accounts, transactions, blocks,
+    tokens, contracts, and analytics
+  contact:
+    name: Tronscan Team
+    url: https://tronscan.org
+  license:
+    name: Apache 2.0
+servers:
+- url: https://apilist.tronscanapi.com
+  description: Production API server
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: TRON-PRO-API-KEY
+      description: API key for authentication
+  parameters:
+    address:
+      name: address
+      in: query
+      required: true
+      description: TRON account address
+      schema:
+        type: string
+    start:
+      name: start
+      in: query
+      required: false
+      description: 'Start index for pagination (default: 0)'
+      schema:
+        type: integer
+        default: 0
+    limit:
+      name: limit
+      in: query
+      required: false
+      description: 'Number of items per page (default: 10)'
+      schema:
+        type: integer
+        default: 10
+security:
+- ApiKeyHeader: []
+paths:
+  /api/account/list:
+    get:
+      summary: Get account list
+      description: Returns a list of accounts with pagination and sorting
+      tags:
+      - Accounts
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/limit'
+      - name: sort
+        in: query
+        description: Sort criteria (e.g., "-balance")
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                  total:
+                    type: integer
+                  rangeTotal:
+                    type: integer
+  /api/accountv2:
+    get:
+      summary: Get account details
+      description: Retrieves comprehensive account information including permissions,
+        tokens, and resources
+      tags:
+      - Accounts
+      parameters:
+      - $ref: '#/components/parameters/address'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  address:
+                    type: string
+                  balance:
+                    type: number
+                  assetV2:
+                    type: object
+                  accountPermission:
+                    type: array
+  /api/account/tokens:
+    get:
+      summary: Get account tokens
+      description: Lists tokens held by account with balance greater than 0
+      tags:
+      - Accounts
+      parameters:
+      - $ref: '#/components/parameters/address'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/limit'
+      - name: hidden
+        in: query
+        description: Include hidden tokens
+        schema:
+          type: boolean
+      - name: sortBy
+        in: query
+        description: Sort by field name
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                  total:
+                    type: integer
+  /api/block:
+    get:
+      summary: Get block information
+      description: Returns block information with pagination
+      tags:
+      - Blocks
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/limit'
+      - name: producer
+        in: query
+        description: Super representative address
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: 'Sort criteria (default: -number)'
+        schema:
+          type: string
+          default: -number
+      - name: start_timestamp
+        in: query
+        description: Start timestamp
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                  total:
+                    type: integer
+  /api/block/statistic:
+    get:
+      summary: Get block statistics
+      description: Returns statistical information of blocks
+      tags:
+      - Blocks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastDayPay:
+                    type: number
+                  blockCount:
+                    type: integer
+                  totalBurn:
+                    type: number
+  /api/contracts:
+    get:
+      summary: Get list of contracts
+      description: Returns a list of smart contracts with filtering and sorting
+      tags:
+      - Contracts
+      parameters:
+      - name: search
+        in: query
+        description: Search term for contracts
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/limit'
+      - name: sort
+        in: query
+        description: Sort criteria
+        schema:
+          type: string
+      - name: open-source-only
+        in: query
+        description: Filter to open-source contracts only
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                  total:
+                    type: integer
+  /api/contract:
+    get:
+      summary: Get contract detail
+      description: Retrieves comprehensive information for a specific contract
+      tags:
+      - Contracts
+      parameters:
+      - name: contract
+        in: query
+        required: true
+        description: Contract address
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contract_address:
+                    type: string
+                  name:
+                    type: string
+                  code:
+                    type: string
+                  constructor_parameter:
+                    type: string
+  /api/contracts/smart-contract-triggers-batch:
+    post:
+      summary: Get event information
+      description: Returns a list of event information for the contract
+      tags:
+      - Contracts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contractAddress:
+                  type: string
+                hashList:
+                  type: array
+                  items:
+                    type: string
+                term:
+                  type: string
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
