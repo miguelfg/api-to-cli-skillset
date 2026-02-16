@@ -22,8 +22,10 @@ Generate production-ready Python Click CLI projects from API documentation PRD.m
 **Interactive Configuration:**
 The skill will prompt for:
 - Project name
-- Batch input formats (CSV, TXT, or both)
-- Output formats (JSON, CSV, XLSX)
+- HTTP library choice (requests, httpx, aiohttp, etc.). Default: `requests`
+- Logging preferences (screen only, file only, both, none). Default: screen only
+- Batch input (yes/no, CSV/TXT/both). Default: both
+- Output formats (JSON, CSV, XLSX, multiple selection). Default: XLSX
 - Timestamp configuration (format and inclusion in filenames)
 
 **Output:** Complete project structure in the specified output folder
@@ -38,8 +40,10 @@ Invoke the skill with a PRD.md file path:
 
 The skill will:
 1. **Ask questions** via `askUserQuestion` about:
+   - HTTP library (requests, httpx, aiohttp, etc.)
    - Batch input formats (CSV, TXT, or both)
    - Project name and output directory
+   - Logging preferences (screen, file, both, none)
    - Output format preferences (JSON, CSV, XLSX)
    - Timestamp configuration (format, include in filenames)
    - .env configuration options
@@ -47,11 +51,14 @@ The skill will:
 2. **Generate project structure:**
    - `src/cli.py` — Main Click CLI entry point
    - `src/commands/{resource}_commands.py` — One file per API resource
-   - `src/client.py` — HTTP client wrapper
+   - `src/client.py` — HTTP client wrapper (using selected library)
    - `src/config.py` — Configuration management
    - `src/batch_processor.py` — Batch request processor
+   - `src/logger.py` — Logging configuration
+   - `Makefile` — Development commands and endpoint examples
    - `.env.example` — Configuration template
    - `requirements.txt` — Dependencies
+   - `logs/` — Log directory (if file logging enabled)
    - `data/` and `output/` — Data directories
 
 3. **Support batch processing:**
@@ -170,6 +177,237 @@ python -m src.cli batch \
 ⏰ **Timestamp support** — Include or exclude timestamps in filenames
 ⚙️ **.env configuration** — Secure API key and settings management
 🔄 **Configurable options** — Ask users about preferences, not hardcoded
+🐍 **HTTP library selection** — Choose between requests, httpx, aiohttp, etc.
+📋 **Makefile generation** — Standard development commands and endpoint examples
+📊 **Smart output flattening** — Flatten nested JSON with dot notation
+🗂️ **XLSX split sheets** — Automatically split nested data to separate sheets
+🪵 **Flexible logging** — Screen, file, or both with timestamp patterns
+
+---
+
+## HTTP Library Selection
+
+Users can choose their preferred Python HTTP library during project generation:
+
+**Supported libraries:**
+- `requests` (default) — Synchronous, most popular
+- `httpx` — Modern, async-capable, requests-compatible
+- `aiohttp` — Fully async, high performance
+- `urllib3` — Lightweight, batteries-included
+
+The generated `src/client.py` and `requirements.txt` are configured for the selected library.
+
+---
+
+## Makefile Integration
+
+Generated projects include a `Makefile` with common development tasks:
+
+**Standard targets:**
+```bash
+make install      # Install dependencies
+make install-dev  # Install with dev dependencies
+make lint         # Run code linting
+make format       # Format code
+make test         # Run tests
+```
+
+**Endpoint example targets** (auto-generated):
+```bash
+make accounts-get      # GET /accounts/{id}
+make accounts-list     # GET /accounts
+make accounts-create   # POST /accounts
+make transactions-get  # GET /transactions/{id}
+make users-update      # PUT /users/{id}
+```
+
+Each endpoint target calls the CLI with example parameters for quick testing.
+
+---
+
+## Logging Configuration
+
+Generated projects support flexible logging:
+
+**Default:** Screen-only logging
+
+**Options:**
+- **Screen only** — Console output (default)
+- **File only** — Write to `logs/{cli-name}_{timestamp}.log`
+- **Both** — Console + file logging
+- **None** — No logging
+
+**Log file pattern:**
+```
+logs/
+├── tronscan_cli_20240115_143022.log
+├── tronscan_cli_20240115_150000.log
+└── tronscan_cli_20240116_091500.log
+```
+
+Configuration in `.env`:
+```
+LOG_LEVEL=INFO
+LOG_TO_FILE=true
+```
+
+---
+
+## Smart Output Flattening (JSON)
+
+When endpoints return nested entities, JSON output is automatically flattened using dot notation:
+
+**API Response:**
+```json
+{
+  "data": {
+    "id": 123,
+    "name": "Example",
+    "details": {
+      "field1": "value1",
+      "field2": "value2"
+    }
+  }
+}
+```
+
+**Flattened JSON output (`accounts.json`):**
+```json
+{
+  "id": 123,
+  "name": "Example",
+  "details.field1": "value1",
+  "details.field2": "value2"
+}
+```
+
+Benefits:
+- ✓ Works naturally with CSV export
+- ✓ Easier filtering and searching
+- ✓ Database-friendly format
+- ✓ Flat structure preserves all information
+
+---
+
+## XLSX Split Sheets
+
+When outputting to XLSX with nested data, tables are automatically split to separate sheets:
+
+**API Response with nested entities:**
+```json
+{
+  "accounts": [
+    {
+      "id": 123,
+      "name": "Example",
+      "details": {
+        "field1": "value1",
+        "field2": "value2"
+      }
+    }
+  ]
+}
+```
+
+**Generated XLSX structure:**
+
+**Sheet 1 - accounts (main entity):**
+| id  | name    |
+| --- | ------- |
+| 123 | Example |
+
+**Sheet 2 - account_details (nested relationship):**
+| account_id | field1 | field2 |
+| ---------- | ------ | ------ |
+| 123        | value1 | value2 |
+
+**How it works:**
+- Main entities in first sheet
+- Each nested object gets its own sheet
+- Foreign key references maintain relationships
+- Sheet names derived from data structure
+
+Benefits:
+- ✓ Normalized structure
+- ✓ Easier data analysis in Excel
+- ✓ Avoids data duplication
+- ✓ Supports multiple nested levels
+
+---
+
+## Logging Configuration Examples
+
+**Default (screen only):**
+```
+INFO: GET /accounts - 0.45s
+INFO: Response: 5 records returned
+INFO: Cache: MISS
+```
+
+**File logging:**
+```
+logs/tronscan_cli_20240115_143022.log:
+2024-01-15 14:30:22 INFO GET /accounts - 0.45s
+2024-01-15 14:30:23 INFO Response: 5 records returned
+2024-01-15 14:30:24 INFO Cache: MISS
+```
+
+**Debug mode (--verbose):**
+```
+DEBUG: Request URL: https://api.example.com/accounts
+DEBUG: Request Headers: {"Authorization": "Bearer..."}
+DEBUG: Response Status: 200
+DEBUG: Response Body: {...full JSON...}
+INFO: Processing completed in 1.23s
+```
+
+---
+
+## Project Structure Example
+
+**Generated project with all new features:**
+
+```
+tronscan_cli/
+├── Makefile                    # Development commands + endpoints
+├── src/
+│   ├── cli.py
+│   ├── client.py               # Uses selected HTTP library
+│   ├── config.py
+│   ├── logger.py               # Logging configuration
+│   ├── batch_processor.py
+│   └── commands/
+│       ├── accounts_commands.py
+│       └── transactions_commands.py
+├── logs/                        # Created if file logging enabled
+│   └── tronscan_cli_*.log
+├── data/
+├── output/
+├── .env
+├── .env.example
+└── requirements.txt             # Includes selected HTTP library
+```
+
+**Usage:**
+```bash
+# Install with selected HTTP library
+make install
+
+# Run endpoint examples
+make accounts-list
+make transactions-get
+
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+tronscan-cli accounts list --verbose
+
+# Batch processing with smart output
+tronscan-cli batch --input data/batch.csv --format json --output output/
+# → Flattened JSON in output/results_*.json
+
+tronscan-cli batch --input data/batch.csv --format xlsx --output output/
+# → Split sheets in output/results_*.xlsx
+```
 
 ---
 
