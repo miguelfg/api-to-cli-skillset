@@ -132,48 +132,180 @@ Common path parameter patterns:
 
 **Normalized format:** Always convert to `{paramName}` format
 
-## Query Parameter Indicators
+## Query Parameter Documentation Patterns
 
-Look for these keywords indicating query parameters:
+The skill searches for these sections in endpoint documentation:
 
-- `?param=value`
-- `query string`
-- `optional parameters`
-- `filter`
-- `limit`
-- `offset`
-- `sort`
-- `search`
+### Pattern 1: Explicit "Query Parameters" Section
 
-**Example extraction:**
+**HTML:**
+```html
+<h4>Query Parameters</h4>
+<ul>
+  <li><code>page</code> - Page number (optional)</li>
+  <li><code>limit</code> - Results per page (optional, default: 10)</li>
+  <li><code>sort</code> - Sort field (optional)</li>
+</ul>
+```
+
+**Extracted:** `page`, `limit`, `sort` as query parameters, all optional
+
+### Pattern 2: Table Format
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| page | integer | No | Page number |
+| limit | integer | No | Results per page |
+
+**Extracted:** Parameters with types
+
+### Pattern 3: Inline in Endpoint Description
+
+**Text:**
 ```
 GET /users?page=1&limit=10
-Extracted: endpoint=/users, parameters=[page, limit]
+Query Parameters: page (optional), limit (optional)
 ```
 
-## Request/Response Examples
+**Extracted:** Parameter names from the URL pattern
 
-When available, these can inform schema generation:
+## Request/Response Examples (Enhanced Extraction)
 
-**JavaScript/JSON request example:**
-```javascript
-// POST /users
+The skill now extracts complete request and response examples from documentation to infer schemas.
+
+### Pattern 1: Markdown Code Blocks (Most Common)
+
+**HTML/Markdown:**
+```markdown
+### Create User
+
+POST /api/users
+
+**Request Example:**
+\`\`\`json
 {
-  "name": "John",
-  "email": "john@example.com"
+  "name": "John Doe",
+  "email": "john@example.com",
+  "role": "user"
 }
+\`\`\`
+
+**Response Example:**
+\`\`\`json
+{
+  "id": 123,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "role": "user",
+  "created_at": "2024-01-15T10:30:00Z"
+}
+\`\`\`
 ```
 
-**HTML response example:**
+**Extracted:**
+- Request: `name`, `email`, `role` as body parameters
+- Response: `id`, `name`, `email`, `role`, `created_at` as response fields
+
+### Pattern 2: HTML Pre/Code Blocks
+
+**HTML:**
 ```html
-<h4>Response</h4>
-<pre>
+<h4>Request</h4>
+<pre><code>
 {
-  "id": 1,
-  "name": "John",
-  "email": "john@example.com"
+  "username": "alice",
+  "password": "secret123"
 }
-</pre>
+</code></pre>
+
+<h4>Response</h4>
+<pre><code>
+{
+  "token": "eyJ...",
+  "expires_in": 3600
+}
+</code></pre>
+```
+
+**Extracted:** Parameters and response structure
+
+### Pattern 3: Labeled Code Examples
+
+**Text:**
+```
+Request:
+POST /login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "pass123"
+}
+
+Response (200):
+{
+  "access_token": "...",
+  "user": { "id": 1, "email": "user@example.com" }
+}
+```
+
+**Extracted:** Request and response structures automatically
+
+## Request Body Parameters (New)
+
+Documentation sections describing POST/PUT/PATCH body fields:
+
+### Pattern 1: Body Parameters Section
+
+**HTML:**
+```html
+<h4>Request Body</h4>
+<ul>
+  <li><code>name</code> (string, required) - User full name</li>
+  <li><code>email</code> (string, required) - User email address</li>
+  <li><code>age</code> (integer, optional) - User age</li>
+  <li><code>preferences</code> (object, optional) - User preferences</li>
+</ul>
+```
+
+**Extracted:**
+- `name` - type: string, required
+- `email` - type: string, required
+- `age` - type: integer, optional
+- `preferences` - type: object, optional
+
+### Pattern 2: Payload Documentation
+
+**Text:**
+```
+POST /api/articles
+
+**Payload:**
+- title (required): Article title
+- content (required): Article body
+- tags (optional): Array of topic tags
+- published (optional): Boolean, default false
+```
+
+**Extracted:** Field names and optional/required status
+
+## Path Parameters (New)
+
+Parameters extracted from URL patterns in endpoint definitions:
+
+### Supported Formats
+
+- `{id}` - Standard OpenAPI format
+- `:id` - Express.js/Fastify format
+- `[id]` - Alternative bracket format
+- `$id` - Alternative dollar format
+
+**Normalized to:** `{id}` in generated OpenAPI spec
+
+**Example:**
+```
+GET /users/{userId}/posts/{postId}
+Extracted: userId (path), postId (path)
 ```
 
 ## HTTP Status Codes

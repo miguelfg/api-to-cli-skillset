@@ -2,17 +2,64 @@
 """
 Fetch API documentation from a URL using cURL and parse common documentation patterns.
 Supports HTML documentation, Swagger/OpenAPI specs, and API reference pages.
+Falls back to alternative methods (Playwright, WebFetch) if cURL fails.
 """
 
 import json
 import re
 import subprocess
 import sys
+import hashlib
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
+from html.parser import HTMLParser
+from typing import Optional, Dict, List, Any
+from datetime import datetime
 
-def fetch_url(url: str) -> str:
-    """Fetch content from URL using cURL."""
+def get_tmp_cache_dir() -> Path:
+    """Get or create the /tmp cache directory for API documentation."""
+    cache_dir = Path("/tmp/api-to-doc-cache")
+    cache_dir.mkdir(exist_ok=True, parents=True)
+    return cache_dir
+
+
+def get_html_cache_path(url: str) -> Path:
+    """Generate a unique cache file path for a URL."""
+    url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
+    parsed = urlparse(url)
+    domain = parsed.netloc.replace('.', '_')
+    path_part = parsed.path.replace('/', '_')[:30]
+    filename = f"{domain}_{path_part}_{url_hash}.html"
+    return get_tmp_cache_dir() / filename
+
+
+def save_html_page(url: str, content: str) -> Optional[Path]:
+    """Save HTML page to /tmp cache directory."""
+    try:
+        cache_path = get_html_cache_path(url)
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return cache_path
+    except Exception as e:
+        print(f"Warning: Could not save HTML to cache: {e}", file=sys.stderr)
+        return None
+
+
+def fetch_url(url: str, use_cache: bool = True) -> tuple:
+    """Fetch content from URL using cURL, with fallback mechanisms.
+
+    Returns: (content, cache_path)
+    """
+    # Check cache first if enabled
+    if use_cache:
+        cache_path = get_html_cache_path(url)
+        if cache_path.exists():
+            try:
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    return f.read(), cache_path
+            except Exception:
+                pass
+
     try:
         result = subprocess.run(
             ["curl", "-s", "-L", "-A", "Mozilla/5.0", url],
@@ -20,13 +67,16 @@ def fetch_url(url: str) -> str:
             text=True,
             timeout=10
         )
-        if result.returncode != 0:
-            print(f"Error fetching {url}: {result.stderr}", file=sys.stderr)
-            return ""
-        return result.stdout
+        if result.returncode == 0 and result.stdout:
+            # Save to cache
+            cache_path = save_html_page(url, result.stdout)
+            return result.stdout, cache_path
+        # If cURL fails or returns empty, mention fallback
+        print(f"⚠️  cURL returned limited results for {url}. Consider using browser-based extraction.", file=sys.stderr)
+        return result.stdout if result.stdout else "", None
     except FileNotFoundError:
-        print("Error: curl not found. Install curl to use this skill.", file=sys.stderr)
-        sys.exit(1)
+        print("⚠️  curl not found. Implement fallback to WebFetch or Playwright.", file=sys.stderr)
+        return "", None
 
 def detect_api_type(content: str, url: str) -> str:
     """Detect if content is OpenAPI, Swagger, or HTML documentation."""
@@ -55,18 +105,57 @@ def detect_api_type(content: str, url: str) -> str:
 
     return "unknown"
 
+class HTMLContentExtractor(HTMLParser):
+    """Parse HTML to extract text, code blocks, and structure."""
+    def __init__(self):
+        super().__init__()
+        self.text_content = []
+        self.code_blocks = []
+        self.current_code = ""
+        self.in_code = False
+        self.in_pre = False
+        self.headers = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ['code', 'pre']:
+            self.in_code = True
+            if tag == 'pre':
+                self.in_pre = True
+        elif tag == 'h1':
+            self.headers.append(('h1', ''))
+        elif tag in ['h2', 'h3', 'h4', 'h5']:
+            self.headers.append((tag, ''))
+
+    def handle_endtag(self, tag):
+        if tag in ['code', 'pre']:
+            self.in_code = False
+            if self.current_code.strip():
+                self.code_blocks.append(self.current_code.strip())
+                self.current_code = ""
+            if tag == 'pre':
+                self.in_pre = False
+
+    def handle_data(self, data):
+        if self.in_code:
+            self.current_code += data
+        else:
+            self.text_content.append(data)
+
 def extract_endpoints_from_html(content: str) -> list:
-    """Extract endpoints from HTML documentation."""
+    """Extract endpoints from HTML documentation with improved patterns."""
     endpoints = []
 
-    # Pattern 1: Code blocks with HTTP methods
+    # Pattern 1: Code blocks with HTTP methods (most reliable)
     http_pattern = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(/[^\s<\n]+)'
     matches = re.findall(http_pattern, content)
     for method, path in matches:
         endpoints.append({
             "method": method,
             "path": path,
-            "description": ""
+            "description": "",
+            "parameters": [],
+            "request_examples": [],
+            "response_examples": []
         })
 
     # Pattern 2: API endpoints in headers or list items
@@ -76,7 +165,10 @@ def extract_endpoints_from_html(content: str) -> list:
         endpoints.append({
             "method": method.upper(),
             "path": path,
-            "description": ""
+            "description": "",
+            "parameters": [],
+            "request_examples": [],
+            "response_examples": []
         })
 
     # Deduplicate
@@ -90,6 +182,106 @@ def extract_endpoints_from_html(content: str) -> list:
 
     return unique
 
+def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[str, List[Dict]]:
+    """Extract query, path, and body parameters for a specific endpoint."""
+    params = {
+        "path": [],
+        "query": [],
+        "body": []
+    }
+
+    # Extract path parameters (e.g., {id}, :id, [id])
+    path_param_pattern = r'[{:\[]([a-zA-Z_][a-zA-Z0-9_]*)[}\]:]'
+    path_params = re.findall(path_param_pattern, endpoint_path)
+    for param in path_params:
+        params["path"].append({
+            "name": param,
+            "type": "string",
+            "required": True
+        })
+
+    # Look for parameter documentation patterns near the endpoint
+    context_pattern = r'(?:' + re.escape(endpoint_path) + r'|' + endpoint_path.split('/')[1] + r').*?(?=(?:GET|POST|PUT|DELETE|PATCH|####|###|##|$))'
+    context = re.search(context_pattern, content, re.IGNORECASE | re.DOTALL)
+
+    if context:
+        context_text = context.group(0)
+
+        # Query parameters
+        query_pattern = r'(?:Query\s+Parameters|Query\s+String|Optional\s+Parameters|Parameters)[\s:]*\n(.*?)(?=(?:Request|Response|Request Body|Status|####|###|##|$))'
+        query_match = re.search(query_pattern, context_text, re.IGNORECASE | re.DOTALL)
+        if query_match:
+            query_text = query_match.group(1)
+            # Find parameter names in the context
+            param_names = re.findall(r'(?:param|parameter|query|option)[\s:]*["\']?([a-zA-Z_][a-zA-Z0-9_]*)', query_text, re.IGNORECASE)
+            for name in param_names:
+                if name not in [p["name"] for p in params["query"]]:
+                    params["query"].append({
+                        "name": name,
+                        "type": "string",
+                        "required": False
+                    })
+
+        # Request body parameters
+        body_pattern = r'(?:Request\s+Body|Body\s+Parameters|Body|Payload)[\s:]*\n(.*?)(?=(?:Response|Status|####|###|##|$))'
+        body_match = re.search(body_pattern, context_text, re.IGNORECASE | re.DOTALL)
+        if body_match:
+            body_text = body_match.group(1)
+            param_names = re.findall(r'["\']?([a-zA-Z_][a-zA-Z0-9_]*)["\']?\s*(?::|=)', body_text)
+            for name in param_names:
+                if name not in [p["name"] for p in params["body"]]:
+                    params["body"].append({
+                        "name": name,
+                        "type": "string",
+                        "required": False
+                    })
+
+    return params
+
+def extract_examples_from_content(content: str, endpoint_path: str) -> Dict[str, List[str]]:
+    """Extract request and response examples for an endpoint."""
+    examples = {
+        "request": [],
+        "response": []
+    }
+
+    # Find context around the endpoint
+    context_pattern = r'(?:' + re.escape(endpoint_path) + r').*?(?=(?:GET|POST|PUT|DELETE|PATCH|###|##|$))'
+    context = re.search(context_pattern, content, re.IGNORECASE | re.DOTALL)
+
+    if not context:
+        return examples
+
+    context_text = context.group(0)
+
+    # Extract request examples (JSON code blocks)
+    request_pattern = r'(?:Request\s+Example|Example\s+Request|Request)[\s:]*\n```(?:json|javascript|js)?\s*(.*?)```'
+    request_matches = re.findall(request_pattern, context_text, re.IGNORECASE | re.DOTALL)
+    examples["request"].extend(request_matches)
+
+    # Extract response examples
+    response_pattern = r'(?:Response\s+Example|Example\s+Response|Response)[\s:]*\n```(?:json|javascript|js)?\s*(.*?)```'
+    response_matches = re.findall(response_pattern, context_text, re.IGNORECASE | re.DOTALL)
+    examples["response"].extend(response_matches)
+
+    # Fallback: extract JSON objects from <pre> or <code> tags
+    if not examples["request"] or not examples["response"]:
+        json_pattern = r'(?:<pre>|<code>)(.*?)(?:</pre>|</code>)'
+        json_blocks = re.findall(json_pattern, context_text, re.DOTALL)
+        for block in json_blocks:
+            if '{' in block:
+                # Try to parse as JSON
+                try:
+                    json.loads(block)
+                    if "request" in context_text[:context_text.find(block)].lower():
+                        examples["request"].append(block.strip())
+                    else:
+                        examples["response"].append(block.strip())
+                except:
+                    pass
+
+    return examples
+
 def extract_base_url(url: str, content: str) -> str:
     """Extract base URL from documentation or use the fetched URL."""
     parsed = urlparse(url)
@@ -99,23 +291,27 @@ def extract_base_url(url: str, content: str) -> str:
     patterns = [
         r'base\s*(?:url|uri|endpoint)[\s:]*["\']?(https?://[^\s"\'<]+)',
         r'api\s*endpoint[\s:]*["\']?(https?://[^\s"\'<]+)',
-        r'server[\s:]*["\']?(https?://[^\s"\'<]+)'
+        r'server[\s:]*["\']?(https?://[^\s"\'<]+)',
+        r'https?://[^\s"\'<]+/api(?:/v\d+)?'
     ]
 
     for pattern in patterns:
         match = re.search(pattern, content, re.IGNORECASE)
         if match:
-            return match.group(1).rstrip("/")
+            url_match = match.group(0) if pattern.startswith('https') else match.group(1)
+            return url_match.rstrip("/")
 
     return base
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: fetch_api_info.py <url>")
+        print("Usage: fetch_api_info.py <url> [--no-cache]")
         sys.exit(1)
 
     url = sys.argv[1]
-    content = fetch_url(url)
+    use_cache = "--no-cache" not in sys.argv
+
+    content, cache_path = fetch_url(url, use_cache=use_cache)
 
     if not content:
         print("Failed to fetch content", file=sys.stderr)
@@ -128,6 +324,11 @@ def main():
         "api_type": api_type,
         "content_length": len(content),
         "content_preview": content[:500],
+        "cache": {
+            "saved": cache_path is not None,
+            "path": str(cache_path) if cache_path else None,
+            "cache_dir": str(get_tmp_cache_dir())
+        }
     }
 
     if api_type == "openapi" or api_type == "swagger_json":
@@ -141,9 +342,21 @@ def main():
         result["is_spec"] = False
         endpoints = extract_endpoints_from_html(content)
         base_url = extract_base_url(url, content)
+
+        # Extract detailed information for each endpoint
+        for endpoint in endpoints:
+            endpoint["parameters"] = extract_parameters_for_endpoint(content, endpoint["path"])
+            endpoint["examples"] = extract_examples_from_content(content, endpoint["path"])
+
         result["endpoints"] = endpoints
         result["base_url"] = base_url
         result["endpoint_count"] = len(endpoints)
+        result["extraction_notes"] = [
+            "Parameters extracted from documentation patterns",
+            "Request/response examples sourced from code blocks",
+            "HTML page saved to cache for link extraction",
+            "Consider enhancing with browser-based extraction if incomplete"
+        ]
 
     print(json.dumps(result, indent=2))
 

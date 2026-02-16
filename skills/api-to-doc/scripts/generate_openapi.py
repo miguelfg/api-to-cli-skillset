@@ -49,12 +49,11 @@ def create_openapi_spec(
         path = endpoint.get("path", "/")
         method = endpoint.get("method", "GET").lower()
         description = endpoint.get("description", f"{method.upper()} {path}")
-        parameters = endpoint.get("parameters", [])
 
         if path not in spec["paths"]:
             spec["paths"][path] = {}
 
-        spec["paths"][path][method] = {
+        operation = {
             "summary": description,
             "tags": [endpoint.get("tag", "default")],
             "responses": {
@@ -74,8 +73,53 @@ def create_openapi_spec(
             }
         }
 
-        if parameters:
-            spec["paths"][path][method]["parameters"] = parameters
+        # Add parameters if provided
+        params_data = endpoint.get("parameters", {})
+        if isinstance(params_data, dict):
+            # Extract path and query parameters
+            path_params = params_data.get("path", []) or []
+            query_params = params_data.get("query", []) or []
+            body_params = params_data.get("body", []) or []
+
+            if path_params or query_params:
+                operation["parameters"] = []
+
+                for param in path_params:
+                    operation["parameters"].append({
+                        "name": param.get("name", "id"),
+                        "in": "path",
+                        "required": True,
+                        "schema": {"type": param.get("type", "string")}
+                    })
+
+                for param in query_params:
+                    operation["parameters"].append({
+                        "name": param.get("name", "param"),
+                        "in": "query",
+                        "required": param.get("required", False),
+                        "schema": {"type": param.get("type", "string")}
+                    })
+
+            if body_params and method in ["post", "put", "patch"]:
+                operation["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    param.get("name", f"field_{i}"): {
+                                        "type": param.get("type", "string")
+                                    }
+                                    for i, param in enumerate(body_params)
+                                },
+                                "required": [p.get("name", f"field_{i}") for i, p in enumerate(body_params) if p.get("required")]
+                            }
+                        }
+                    }
+                }
+
+        spec["paths"][path][method] = operation
 
     return spec
 
