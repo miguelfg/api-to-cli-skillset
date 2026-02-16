@@ -1,6 +1,6 @@
 ---
 name: doc-to-prd
-description: Creates a PRD for a Python API client based on a given API specification or documentation (online or offline).
+description: Creates a comprehensive PRD (Product Requirements Document) for a Python API client based on a given API specification or documentation (online or offline). Generates structured markdown with installation, configuration, authentication, endpoint reference, caching, rate limiting, error handling, logging, best practices, and Makefile/uvicorn integration guidance.
 ---
 
 ## Expected Parameters
@@ -107,4 +107,299 @@ Don't:
 - Assume any specific API structure; adapt to the provided documentation, otherwise ask the user for clarifications.
 - Generate unit tests or other testing frameworks.
 - Create deployment scripts or CI/CD pipelines.
+
+---
+
+## PRD Template Structure
+
+The skill generates PRD.md files following a comprehensive template that includes all necessary sections for API client development. See the template in `references/PRD_template.md`.
+
+### PRD Sections
+
+1. **Introduction** - Overview, purpose, target audience, key features
+2. **Installation** - System requirements, installation methods, dependencies, verification
+3. **Configuration** - Environment variables, config files, configuration management commands
+4. **Authentication** - API key setup, authentication methods, error handling, best practices
+5. **Endpoint Reference** - Resource documentation with method, path, parameters, response, examples
+   - Subsections for each API resource (Users, Posts, Comments, etc.)
+   - Standard CRUD operations (List, Get, Create, Update, Delete)
+6. **Input/Output Examples** - Single request and batch processing examples with outputs in various formats
+7. **Caching** - Overview, configuration, management commands, strategy, best practices
+8. **Rate Limiting** - API limits, client-side rate limiting, configuration, example handling
+9. **Error Handling** - Error classification, response format, common errors with solutions
+10. **Logging** - Log levels, configuration, log format, verbose mode, best practices
+11. **Best Click Practices** - CLI design principles, standard options, error messages, performance
+12. **Makefile & Project Management** - Project structure, Makefile commands, uvicorn integration
+
+### Template Customization
+
+The template uses placeholders for easy customization:
+
+- `[API Name]` - Your API name
+- `[api-prefix]` - API environment variable prefix (e.g., STRIPE, GITHUB)
+- `[cli-name]` - CLI tool name (e.g., stripe-cli, github-cli)
+- `[RESOURCE_NAME]` - API resource names (e.g., users, posts)
+- `[Limit]` - Rate limit values
+- `[org]` - Organization/company name
+
+---
+
+## Makefile & Project Management
+
+### Makefile Integration
+
+The generated PRD.md includes a sample Makefile with common development tasks:
+
+**Standard Makefile Targets:**
+
+```bash
+make install          # Install in development mode
+make install-dev      # Install with dev dependencies
+make lint             # Run code linting
+make format           # Format code
+make test             # Run unit tests
+make test-cov         # Run tests with coverage
+make dev              # Start development environment
+make build            # Build distribution packages
+make clean            # Clean build artifacts
+make docs             # Generate documentation
+make prd              # Generate/update PRD.md
+make serve            # Run development server with uvicorn
+make serve-prod       # Run production server with uvicorn
+```
+
+**Example Makefile for Click CLI:**
+
+```makefile
+.PHONY: help install test lint format
+
+install:
+	pip install -e .
+
+install-dev:
+	pip install -e ".[dev]"
+
+lint:
+	flake8 src/ && pylint src/
+
+format:
+	black src/ && isort src/
+
+test:
+	pytest tests/ -v
+
+test-cov:
+	pytest tests/ -v --cov=src/
+
+clean:
+	rm -rf build/ dist/ *.egg-info/
+	find . -type d -name __pycache__ -exec rm -rf {} +
+
+build:
+	python -m build
+
+prd:
+	@echo "PRD.md is maintained in documentation/"
+```
+
+### uvicorn Integration
+
+The PRD recommends **uvicorn** as the optional CLI project management and development server tool.
+
+**When to use uvicorn:**
+
+- Development server for testing API client functionality
+- Running local mock API for testing
+- Serving documentation or admin endpoints
+- Integration with async/ASGI features (future enhancement)
+
+**Installation:**
+
+```bash
+pip install uvicorn
+```
+
+**Basic Usage:**
+
+```bash
+# Run development server
+uvicorn [cli_name].server:app --reload --port 8000
+
+# Run with specific settings
+uvicorn [cli_name].server:app --host 0.0.0.0 --port 8000 --workers 4
+
+# Run with configuration file
+uvicorn [cli_name].server:app --config uvicorn.ini
+```
+
+**Makefile Integration:**
+
+```makefile
+serve:
+	uvicorn [cli_name].server:app --reload --port 8000
+
+serve-prod:
+	uvicorn [cli_name].server:app --host 0.0.0.0 --port 8000 --workers 4
+
+serve-debug:
+	uvicorn [cli_name].server:app --reload --port 8000 --log-level debug
+```
+
+**Configuration File (uvicorn.ini):**
+
+```ini
+[server]
+host = 0.0.0.0
+port = 8000
+workers = 4
+reload = true
+log-level = info
+```
+
+**Use Cases for uvicorn with Click CLI:**
+
+1. **Development Server** - Test CLI against local mock API
+2. **Documentation Server** - Serve auto-generated API documentation
+3. **Admin Interface** - Provide web UI for configuration management
+4. **Health Checks** - Expose `/health` endpoint for monitoring
+5. **Telemetry** - Serve metrics endpoint for monitoring tools
+
+---
+
+## Output Example: Generated PRD.md Structure
+
+When the skill generates a PRD.md, it follows this structure:
+
+```markdown
+# API Python Client - Product Requirements Document
+
+## Table of Contents
+1. Introduction
+2. Installation
+3. Configuration
+...
+
+## Introduction
+### Overview
+### Purpose
+### Target Audience
+### Key Features
+
+## Installation
+### System Requirements
+### Installation Methods
+### Verify Installation
+### Dependencies
+
+## Configuration
+### Environment Variables
+### Configuration File
+### Configuration Management Commands
+
+## Authentication
+### API Key Authentication
+### Authentication Methods
+### Error Handling
+### Best Practices
+
+## Endpoint Reference
+### Resource Naming
+### Endpoint Structure
+### [RESOURCE_NAME]
+#### List [Resource]
+#### Get [Resource]
+#### Create [Resource]
+#### Update [Resource]
+#### Delete [Resource]
+
+## Input/Output Examples
+### Single Request Examples
+### Batch Processing Examples
+### Output Format Examples
+
+## Caching
+### Overview
+### Configuration
+### Management Commands
+### Best Practices
+
+## Rate Limiting
+### API Rate Limits
+### Client Rate Limiting
+### Configuration
+### Best Practices
+
+## Error Handling
+### Error Classification
+### Error Response Format
+### Common Errors
+### Best Practices
+
+## Logging
+### Log Levels
+### Configuration
+### Log Format
+### Best Practices
+
+## Best Click Practices
+### CLI Command Design
+### Standard Options
+### Error Messages
+### Performance Best Practices
+
+## Makefile & Project Management
+### Project Structure
+### Makefile Commands
+### uvicorn Integration
+### Common Workflow
+```
+
+---
+
+## Integration with api-to-cli Workflow
+
+The `doc-to-prd` skill fits into the complete workflow:
+
+```
+API URL
+  ↓
+[api-to-doc] → OpenAPI YAML/JSON
+  ↓
+[doc-to-prd] → PRD.md (comprehensive, this skill)
+  ↓
+[prd-to-cli] → Python Click CLI Project
+  ↓
+[Makefile] → Manage, test, deploy
+```
+
+---
+
+## Usage Tips
+
+### Customizing the Template
+
+After generating PRD.md, customize for your API:
+
+1. Replace placeholders: `[API Name]`, `[cli-name]`, `[RESOURCE_NAME]`
+2. Update rate limits and authentication details
+3. Add API-specific configuration options
+4. Customize Makefile for your project structure
+5. Add project-specific logging or caching requirements
+
+### Best Practices
+
+✓ Review generated PRD.md carefully
+✓ Update examples with real API values
+✓ Test all endpoint examples before finalizing
+✓ Keep PRD.md in sync with implementation
+✓ Use version control for PRD.md changes
+✓ Include PRD.md in project documentation
+✓ Reference PRD.md in README.md
+
+---
+
+## References
+
+- **[PRD_template.md](references/PRD_template.md)** - Complete PRD template with all sections
+- Related skills: `prd-to-cli`, `api-to-doc`
 

@@ -1,0 +1,205 @@
+# Makefile for [CLI_NAME] - Python API Client
+# This is a sample Makefile for Click CLI projects
+# Customize PROJECT_NAME, Python version, and commands as needed
+
+.PHONY: help install install-dev lint format test test-cov test-fast dev build clean docs serve serve-prod release info status
+
+# Configuration
+PROJECT_NAME := [cli_name]
+PYTHON := python3
+PIP := pip3
+VENV := venv
+SRC_DIR := src
+TESTS_DIR := tests
+
+# Color output
+GREEN := \033[0;32m
+YELLOW := \033[0;33m
+NC := \033[0m # No Color
+
+help:
+	@echo "$(GREEN)$(PROJECT_NAME) - Makefile targets:$(NC)"
+	@echo ""
+	@echo "Installation:"
+	@echo "  $(YELLOW)make install$(NC)        - Install in development mode"
+	@echo "  $(YELLOW)make install-dev$(NC)    - Install with development dependencies"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  $(YELLOW)make lint$(NC)           - Run linting (flake8, pylint)"
+	@echo "  $(YELLOW)make format$(NC)         - Format code (black, isort)"
+	@echo "  $(YELLOW)make format-check$(NC)   - Check format without changing files"
+	@echo ""
+	@echo "Testing:"
+	@echo "  $(YELLOW)make test$(NC)           - Run all tests with coverage"
+	@echo "  $(YELLOW)make test-fast$(NC)      - Run tests without coverage"
+	@echo "  $(YELLOW)make test-verbose$(NC)   - Run tests with verbose output"
+	@echo ""
+	@echo "Development:"
+	@echo "  $(YELLOW)make dev$(NC)            - Show CLI help (verify installation)"
+	@echo "  $(YELLOW)make serve$(NC)          - Run development server (uvicorn)"
+	@echo "  $(YELLOW)make serve-prod$(NC)     - Run production server (uvicorn)"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  $(YELLOW)make docs$(NC)           - Generate documentation"
+	@echo "  $(YELLOW)make prd$(NC)            - Show PRD.md location"
+	@echo ""
+	@echo "Build & Release:"
+	@echo "  $(YELLOW)make build$(NC)          - Build distribution packages"
+	@echo "  $(YELLOW)make release$(NC)        - Build and prepare release"
+	@echo "  $(YELLOW)make clean$(NC)          - Clean build artifacts"
+	@echo ""
+	@echo "Utility:"
+	@echo "  $(YELLOW)make info$(NC)           - Show project information"
+	@echo "  $(YELLOW)make status$(NC)         - Show git and dependencies status"
+	@echo "  $(YELLOW)make help$(NC)           - Show this help message"
+
+# Installation targets
+
+install:
+	@echo "$(GREEN)Installing $(PROJECT_NAME) in development mode...$(NC)"
+	$(PIP) install -e .
+	@echo "$(GREEN)✓ Installation complete$(NC)"
+
+install-dev:
+	@echo "$(GREEN)Installing $(PROJECT_NAME) with dev dependencies...$(NC)"
+	$(PIP) install -e ".[dev]"
+	@echo "$(GREEN)✓ Installation complete$(NC)"
+
+install-deps:
+	@echo "$(GREEN)Installing dependencies only...$(NC)"
+	$(PIP) install -r requirements.txt
+	@echo "$(GREEN)✓ Dependencies installed$(NC)"
+
+# Code quality targets
+
+lint:
+	@echo "$(GREEN)Running linters...$(NC)"
+	$(PYTHON) -m flake8 $(SRC_DIR)/ --max-line-length=100
+	$(PYTHON) -m pylint $(SRC_DIR)/ --disable=C0111,C0103 || true
+	@echo "$(GREEN)✓ Linting complete$(NC)"
+
+format:
+	@echo "$(GREEN)Formatting code...$(NC)"
+	$(PYTHON) -m black $(SRC_DIR)/ $(TESTS_DIR)/
+	$(PYTHON) -m isort $(SRC_DIR)/ $(TESTS_DIR)/
+	@echo "$(GREEN)✓ Formatting complete$(NC)"
+
+format-check:
+	@echo "$(GREEN)Checking code format...$(NC)"
+	$(PYTHON) -m black $(SRC_DIR)/ $(TESTS_DIR)/ --check
+	$(PYTHON) -m isort $(SRC_DIR)/ $(TESTS_DIR)/ --check-only
+	@echo "$(GREEN)✓ Format check complete$(NC)"
+
+# Testing targets
+
+test:
+	@echo "$(GREEN)Running tests with coverage...$(NC)"
+	$(PYTHON) -m pytest $(TESTS_DIR)/ -v --cov=$(SRC_DIR)/ --cov-report=term-missing --cov-report=html
+	@echo "$(GREEN)✓ Tests complete. Coverage report: htmlcov/index.html$(NC)"
+
+test-fast:
+	@echo "$(GREEN)Running tests (fast mode)...$(NC)"
+	$(PYTHON) -m pytest $(TESTS_DIR)/ -v --tb=short
+	@echo "$(GREEN)✓ Tests complete$(NC)"
+
+test-verbose:
+	@echo "$(GREEN)Running tests (verbose)...$(NC)"
+	$(PYTHON) -m pytest $(TESTS_DIR)/ -vv --tb=long -s
+	@echo "$(GREEN)✓ Tests complete$(NC)"
+
+test-watch:
+	@echo "$(GREEN)Running tests in watch mode...$(NC)"
+	$(PYTHON) -m pytest-watch $(TESTS_DIR)/ -- -v
+
+# Development targets
+
+dev:
+	@echo "$(GREEN)Verifying $(PROJECT_NAME) installation...$(NC)"
+	$(PYTHON) -m $(PROJECT_NAME) --version
+	$(PYTHON) -m $(PROJECT_NAME) --help
+	@echo "$(GREEN)✓ CLI is ready to use$(NC)"
+
+serve:
+	@echo "$(GREEN)Starting development server...$(NC)"
+	uvicorn $(PROJECT_NAME).server:app --reload --port 8000
+
+serve-prod:
+	@echo "$(GREEN)Starting production server...$(NC)"
+	uvicorn $(PROJECT_NAME).server:app --host 0.0.0.0 --port 8000 --workers 4
+
+serve-debug:
+	@echo "$(GREEN)Starting debug server...$(NC)"
+	uvicorn $(PROJECT_NAME).server:app --reload --port 8000 --log-level debug
+
+# Documentation targets
+
+docs:
+	@echo "$(GREEN)Building documentation...$(NC)"
+	@if [ -f "mkdocs.yml" ]; then \
+		mkdocs build; \
+		echo "$(GREEN)✓ Documentation built: site/index.html$(NC)"; \
+	else \
+		echo "$(YELLOW)mkdocs.yml not found. Skipping documentation build.$(NC)"; \
+	fi
+
+docs-serve:
+	@echo "$(GREEN)Serving documentation...$(NC)"
+	@if [ -f "mkdocs.yml" ]; then \
+		mkdocs serve; \
+	else \
+		echo "$(YELLOW)mkdocs.yml not found.$(NC)"; \
+	fi
+
+prd:
+	@echo "$(GREEN)PRD.md location:$(NC)"
+	@ls -la PRD.md 2>/dev/null || echo "PRD.md not found in current directory"
+	@echo "$(GREEN)See documentation/ folder for comprehensive API documentation$(NC)"
+
+# Build targets
+
+build:
+	@echo "$(GREEN)Building distribution packages...$(NC)"
+	$(PYTHON) -m build
+	@echo "$(GREEN)✓ Build complete: dist/$(NC)"
+
+clean:
+	@echo "$(GREEN)Cleaning build artifacts...$(NC)"
+	rm -rf build/ dist/ *.egg-info/
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+	rm -rf htmlcov/ .coverage
+	@echo "$(GREEN)✓ Clean complete$(NC)"
+
+release: clean build
+	@echo "$(GREEN)Release artifacts ready in dist/$(NC)"
+	@ls -lh dist/
+	@echo "$(YELLOW)Next: python -m twine upload dist/*$(NC)"
+
+# Utility targets
+
+info:
+	@echo "$(GREEN)Project Information:$(NC)"
+	@echo "  Project: $(PROJECT_NAME)"
+	@echo "  Python: $$($(PYTHON) --version)"
+	@echo "  Pip: $$($(PIP) --version)"
+	@echo ""
+	@echo "$(GREEN)Installed Packages:$(NC)"
+	@$(PIP) list | grep -E "click|requests|pandas|pytest" || true
+
+status:
+	@echo "$(GREEN)Git Status:$(NC)"
+	@git status --short || echo "Not a git repository"
+	@echo ""
+	@echo "$(GREEN)Dependencies Status:$(NC)"
+	@$(PIP) list --outdated | head -5 || echo "All dependencies up to date"
+	@echo ""
+	@echo "$(GREEN)Environment:$(NC)"
+	@echo "  Python: $$($(PYTHON) --version)"
+	@echo "  Virtual Env: $(VIRTUAL_ENV)"
+	@echo "  Working Dir: $$(pwd)"
+
+# Default target
+.DEFAULT_GOAL := help
+
+# Phony targets (don't represent files)
+.PHONY: help install install-dev lint format test dev build clean
