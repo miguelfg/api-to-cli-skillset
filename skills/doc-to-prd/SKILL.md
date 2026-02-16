@@ -202,67 +202,106 @@ prd:
 	@echo "PRD.md is maintained in documentation/"
 ```
 
-### uvicorn Integration
+### uv Project Management
 
-The PRD recommends **uvicorn** as the optional CLI project management and development server tool.
+The PRD recommends **uv** (Python package and project manager) for project dependency and command management.
 
-**When to use uvicorn:**
+**What is uv:**
 
-- Development server for testing API client functionality
-- Running local mock API for testing
-- Serving documentation or admin endpoints
-- Integration with async/ASGI features (future enhancement)
+**uv** is a fast, modern Python package and project manager:
+- ✓ 10x faster than pip for common operations
+- ✓ Deterministic builds with `uv.lock` file
+- ✓ Unified tool for install, run, build, publish
+- ✓ Works with standard Python projects
+- ✓ Single tool replaces pip, poetry, and venv
 
 **Installation:**
 
 ```bash
-pip install uvicorn
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or via pip
+pip install uv
 ```
 
-**Basic Usage:**
+**Basic Usage in Generated Projects:**
 
 ```bash
-# Run development server
-uvicorn [cli_name].server:app --reload --port 8000
+# Install dependencies
+uv sync
 
-# Run with specific settings
-uvicorn [cli_name].server:app --host 0.0.0.0 --port 8000 --workers 4
+# Run CLI commands
+uv run [cli-name] users list
+uv run [cli-name] posts create
 
-# Run with configuration file
-uvicorn [cli_name].server:app --config uvicorn.ini
+# Run tests
+uv run pytest tests/ -v
+
+# Format and lint
+uv run black src/
+uv run pylint src/
 ```
 
 **Makefile Integration:**
 
+Generated projects include a Makefile using uv:
+
 ```makefile
-serve:
-	uvicorn [cli_name].server:app --reload --port 8000
+install:
+	uv sync
 
-serve-prod:
-	uvicorn [cli_name].server:app --host 0.0.0.0 --port 8000 --workers 4
+install-dev:
+	uv sync --all-extras
 
-serve-debug:
-	uvicorn [cli_name].server:app --reload --port 8000 --log-level debug
+test:
+	uv run pytest tests/ -v
+
+format:
+	uv run black src/
+	uv run isort src/
+
+users-list:
+	uv run [cli-name] users list
+
+users-get:
+	uv run [cli-name] users get --id 123
 ```
 
-**Configuration File (uvicorn.ini):**
+**Project Configuration (pyproject.toml):**
 
-```ini
-[server]
-host = 0.0.0.0
-port = 8000
-workers = 4
-reload = true
-log-level = info
+```toml
+[project]
+name = "[cli-name]"
+version = "1.0.0"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.1.0",
+    "requests>=2.28.0",
+    "pandas>=1.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "pylint>=2.17",
+]
+
+[project.scripts]
+[cli-name] = "[cli_name].cli:main"
 ```
 
-**Use Cases for uvicorn with Click CLI:**
+**Benefits:**
 
-1. **Development Server** - Test CLI against local mock API
-2. **Documentation Server** - Serve auto-generated API documentation
-3. **Admin Interface** - Provide web UI for configuration management
-4. **Health Checks** - Expose `/health` endpoint for monitoring
-5. **Telemetry** - Serve metrics endpoint for monitoring tools
+- Fast dependency resolution and installation
+- Deterministic builds with lock file (`uv.lock`)
+- Single command for all operations
+- Python-native configuration (`pyproject.toml`)
+- No need for separate virtual environment activation
 
 ---
 

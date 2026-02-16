@@ -963,9 +963,8 @@ Use one of:
 ```
 [api-client]/
 ├── Makefile                    # Common tasks
-├── pyproject.toml              # Project metadata
-├── setup.py                    # Installation script
-├── requirements.txt            # Dependencies
+├── pyproject.toml              # Project metadata (with uv configuration)
+├── uv.lock                     # Locked dependencies
 ├── README.md                   # Project documentation
 ├── src/
 │   └── [cli_name]/
@@ -996,25 +995,33 @@ Use one of:
 
 ### Makefile Commands
 
-**Installation:**
+The generated project includes a Makefile using `uv` (Python package and project manager):
+
+**Installation & Setup:**
 
 ```bash
-make install           # Install in development mode
-make install-deps     # Install dependencies only
-make install-dev      # Install with dev dependencies
+make install           # Install dependencies with uv sync
+make install-dev       # Install with dev dependencies
 ```
 
 **Development:**
 
 ```bash
-make lint             # Run code linting (flake8, pylint)
-make format           # Format code (black, isort)
+make lint             # Run code linting
+make format           # Format code
 make test             # Run unit tests
 make test-cov         # Run tests with coverage
-make dev              # Start development environment
 ```
 
-**Building:**
+**CLI Testing:**
+
+```bash
+make users-list       # Example: uv run [cli-name] users list
+make users-get        # Example: uv run [cli-name] users get --id 123
+make posts-create     # Example: uv run [cli-name] posts create --title "..."
+```
+
+**Building & Release:**
 
 ```bash
 make build            # Build distribution packages
@@ -1022,153 +1029,185 @@ make clean            # Clean build artifacts
 make release          # Build and prepare release
 ```
 
-**Documentation:**
-
-```bash
-make docs             # Generate documentation
-make docs-serve       # Serve documentation locally
-make prd              # Generate or update PRD.md
-```
-
 **Project Management:**
 
 ```bash
-make status           # Show project status
-make info             # Display project information
 make help             # Show all available commands
+make status           # Show project status
 ```
 
-### Sample Makefile
+### Using uv (Python Package Manager)
+
+**uv** is a fast, reliable Python package manager and project manager:
+
+**Installation:**
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or via pip
+pip install uv
+```
+
+**Project Setup:**
+
+```bash
+# Initialize new project
+uv init [project-name]
+
+# Or in existing project
+uv sync
+
+# Add dependencies
+uv add requests click pandas
+
+# Add dev dependencies
+uv add --dev pytest black pylint
+```
+
+**Running Commands:**
+
+```bash
+# Run CLI commands
+uv run [cli-name] --help
+uv run [cli-name] users list
+uv run [cli-name] batch --input data/batch.csv
+
+# Run tests
+uv run pytest tests/ -v
+
+# Run linters
+uv run black src/
+uv run pylint src/
+```
+
+**Project Configuration (pyproject.toml):**
+
+```toml
+[project]
+name = "[cli-name]"
+version = "1.0.0"
+description = "Python CLI client for [API Name]"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.1.0",
+    "requests>=2.28.0",
+    "pandas>=1.5.0",
+    "python-dotenv>=0.21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "pylint>=2.17",
+    "isort>=5.0",
+]
+
+[project.scripts]
+[cli-name] = "[cli_name].cli:main"
+
+[tool.uv]
+allow-direct-references = true
+```
+
+### Sample Makefile with uv
 
 ```makefile
-.PHONY: help install install-dev lint format test test-cov dev build clean docs prd
+.PHONY: help install install-dev lint format test test-cov clean build release
 
 PROJECT_NAME := [cli-name]
-PYTHON := python3
-PIP := pip3
 
 help:
 	@echo "Available commands:"
-	@echo "  make install        - Install in development mode"
+	@echo "  make install        - Install dependencies (uv sync)"
 	@echo "  make install-dev    - Install with dev dependencies"
 	@echo "  make lint           - Run code linting"
 	@echo "  make format         - Format code"
 	@echo "  make test           - Run tests"
 	@echo "  make test-cov       - Run tests with coverage"
-	@echo "  make dev            - Start development environment"
-	@echo "  make build          - Build distribution"
 	@echo "  make clean          - Clean build artifacts"
-	@echo "  make docs           - Generate documentation"
-	@echo "  make prd            - Generate PRD.md"
+	@echo "  make build          - Build distribution"
+	@echo "  make release        - Prepare release"
+	@echo ""
+	@echo "Endpoint examples:"
+	@echo "  make users-list     - uv run $(PROJECT_NAME) users list"
+	@echo "  make users-get      - uv run $(PROJECT_NAME) users get --id 123"
+	@echo "  make posts-create   - uv run $(PROJECT_NAME) posts create --title '...'"
 
 install:
-	$(PIP) install -e .
+	uv sync
 
 install-dev:
-	$(PIP) install -e ".[dev]"
+	uv sync --all-extras
 
 lint:
-	$(PYTHON) -m flake8 src/
-	$(PYTHON) -m pylint src/
+	uv run black --check src/
+	uv run pylint src/
 
 format:
-	$(PYTHON) -m black src/
-	$(PYTHON) -m isort src/
+	uv run black src/
+	uv run isort src/
 
 test:
-	$(PYTHON) -m pytest tests/ -v
+	uv run pytest tests/ -v
 
 test-cov:
-	$(PYTHON) -m pytest tests/ -v --cov=src/
-
-dev:
-	$(PYTHON) -m [cli-name] --help
-
-build:
-	$(PYTHON) -m build
+	uv run pytest tests/ -v --cov=src/
 
 clean:
 	rm -rf build/ dist/ *.egg-info/
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+	rm -rf .pytest_cache .coverage
 
-docs:
-	$(PYTHON) -m mkdocs build
+build:
+	uv build
 
-docs-serve:
-	$(PYTHON) -m mkdocs serve
+release: clean build
+	@echo "Release artifacts ready in dist/"
+	@ls -lh dist/
 
-prd:
-	@echo "Generating PRD.md..."
-	@echo "PRD.md is maintained in documentation/"
+# Endpoint example targets
+users-list:
+	uv run $(PROJECT_NAME) users list
+
+users-get:
+	uv run $(PROJECT_NAME) users get --id 123
+
+posts-create:
+	uv run $(PROJECT_NAME) posts create --title "Example"
 
 .DEFAULT_GOAL := help
 ```
 
-### uvicorn as CLI Project Management
-
-The project uses **uvicorn** for optional development server features:
-
-**Installation:**
-
-```bash
-pip install uvicorn
-```
-
-**Usage:**
-
-```bash
-# Run development server (if API server functionality needed)
-uvicorn [cli-name].server:app --reload --port 8000
-
-# Run with specific settings
-uvicorn [cli-name].server:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-**Configuration:**
-
-Create `uvicorn.ini`:
-
-```ini
-[server]
-host = 0.0.0.0
-port = 8000
-workers = 4
-reload = true
-log-level = info
-```
-
-**Makefile Integration:**
-
-```makefile
-serve:
-	uvicorn [cli-name].server:app --reload --port 8000
-
-serve-prod:
-	uvicorn [cli-name].server:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-### Common Workflow
+### Common Workflow with uv
 
 **Development:**
 
 ```bash
-# 1. Clone and install
+# 1. Clone and sync
 git clone <repo>
 cd [api-client]
-make install-dev
+uv sync
 
 # 2. Make changes
 vim src/[cli-name]/...
 
 # 3. Run tests
-make test
+uv run pytest tests/ -v
 
 # 4. Format code
-make format
+uv run black src/
+uv run isort src/
 
 # 5. Test CLI
-[cli-name] --help
+uv run [cli-name] --help
 
 # 6. Commit and push
 git add .
@@ -1183,17 +1222,24 @@ git push
 vim pyproject.toml
 
 # 2. Build and test
-make clean
-make build
-make test
+uv build
+uv run pytest tests/ -v
 
 # 3. Create tag
 git tag v1.0.0
 git push --tags
 
 # 4. Upload to PyPI
-make release
+uv publish
 ```
+
+### Benefits of uv
+
+✓ **Fast** — 10x faster than pip for common operations
+✓ **Reliable** — Deterministic builds with lock file
+✓ **Simple** — Single tool for install, run, build, publish
+✓ **Python-native** — Works with standard Python projects
+✓ **Batteries included** — Package management + project management
 
 ---
 
