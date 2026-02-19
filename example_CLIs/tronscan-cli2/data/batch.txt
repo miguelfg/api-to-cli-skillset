@@ -1,0 +1,10 @@
+# Tronscan batch input — one JSON object per line
+# Supported commands:
+#   accounts-list, accounts-get, accounts-tokens
+#   blocks-list, blocks-stats
+#   contracts-list, contracts-get, contracts-events
+
+{"command": "accounts-list", "limit": 5, "sort": "-balance"}
+{"command": "blocks-list", "limit": 5}
+{"command": "blocks-stats"}
+{"command": "contracts-list", "search": "USDT", "limit": 5}

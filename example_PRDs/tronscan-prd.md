@@ -1,774 +1,1105 @@
-# PRD: Tronscan API Python Client
+# Tronscan API Python Client - Product Requirements Document
 
 **Version:** 1.0.0
-**API Version:** 1.0.0
-**Base URL:** https://apilist.tronscan.org
-**License:** Apache 2.0
-**Contact:** Tronscan Team (https://tronscan.org)
+**Base URL:** `https://apilist.tronscanapi.com`
+**Generated:** 2026-02-19
+**Source Spec:** `example_APIs/tronscan-api-enhanced.yaml`
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [Configuration](#configuration)
+4. [Authentication](#authentication)
+5. [Endpoint Reference](#endpoint-reference)
+6. [Input/Output Examples](#inputoutput-examples)
+7. [Caching](#caching)
+8. [Rate Limiting](#rate-limiting)
+9. [Error Handling](#error-handling)
+10. [Logging](#logging)
+11. [Best Click Practices](#best-click-practices)
+12. [Makefile & Project Management](#makefile--project-management)
 
 ---
 
-## Overview
+## Introduction
 
-The Tronscan API provides access to the TRON blockchain explorer, enabling developers to query accounts, transactions, blocks, smart contracts, tokens, and network statistics. This PRD defines best practices for building a Python client to interact with these endpoints efficiently.
+### Overview
 
-**Key Features:**
-- Query blockchain data (accounts, transactions, blocks)
-- Retrieve smart contract and token information
-- Access network statistics and parameters
-- Paginated list endpoints for large datasets
-- Read-only API (GET requests only)
-- Free public access (no authentication required)
+This document describes the Product Requirements for a Python CLI client for **Tronscan API** — the TRON blockchain explorer API for querying accounts, transactions, blocks, tokens, contracts, and analytics. The client provides a command-line interface to interact with the API, supporting batch processing, caching, rate limiting, and comprehensive error handling.
+
+### Purpose
+
+- Enable Python developers to quickly integrate Tronscan blockchain data into applications
+- Provide a user-friendly CLI tool for querying TRON blockchain data
+- Support batch operations for large-scale blockchain analytics
+- Implement best practices for API interactions (caching, retry logic, rate limit handling)
+
+### Target Audience
+
+- Python developers building TRON blockchain applications
+- Data engineers processing on-chain data from Tronscan
+- DevOps engineers integrating the API into data pipelines
+- Blockchain analysts querying account, block, and contract data
+
+### Key Features
+
+- ✓ Complete endpoint coverage: Accounts (3), Blocks (2), Contracts (3)
+- ✓ XLSX output format for spreadsheet analysis
+- ✓ Batch processing support (CSV/JSONL input)
+- ✓ Built-in caching to reduce API calls
+- ✓ Automatic retry logic with exponential backoff
+- ✓ Rate limiting respects API quota
+- ✓ Comprehensive logging for debugging
+- ✓ Configuration management via CLI and `.env` file
 
 ---
 
-## Installation & Setup
+## Installation
 
-### Prerequisites
+### System Requirements
 
 - Python 3.8+
-- httpx >= 0.24.0
-- pandas >= 1.5.0 (for CSV/XLSX output)
-- openpyxl >= 3.0.0 (for XLSX support)
+- uv (Python package and project manager)
+- curl (optional, for manual API testing)
 
-### Install Dependencies
+### Installation Methods
+
+#### From Source
 
 ```bash
-pip install httpx pandas openpyxl
+git clone https://github.com/your-org/tronscan-cli.git
+cd tronscan-cli
+uv sync
 ```
 
-### Configuration
+#### From PyPI
 
-Create a `.env` file in your project root:
+```bash
+pip install tronscan-cli
+```
 
-```env
-# Tronscan API Configuration
-TRONSCAN_BASE_URL=https://apilist.tronscan.org
-TRONSCAN_API_KEY=your_api_key_here
+### Verify Installation
+
+```bash
+tronscan --version
+tronscan --help
+```
+
+### Dependencies
+
+```toml
+[project]
+name = "tronscan-cli"
+version = "1.0.0"
+description = "Python CLI client for Tronscan TRON blockchain explorer API"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.1.0",
+    "httpx>=0.27.0",
+    "pandas>=1.5.0",
+    "openpyxl>=3.1.0",
+    "python-dotenv>=0.21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "pylint>=2.17",
+    "isort>=5.0",
+]
+
+[project.scripts]
+tronscan = "tronscan_cli.cli:main"
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+Configure the client using a `.env` file or environment variables:
+
+```bash
+# Required
+TRONSCAN_API_KEY=your-tron-pro-api-key-here
+
+# Optional
+TRONSCAN_BASE_URL=https://apilist.tronscanapi.com
 TRONSCAN_TIMEOUT=30
-TRONSCAN_RETRIES=3
-TRONSCAN_RETRY_DELAY=1
+TRONSCAN_VERBOSE=false
+TRONSCAN_CACHE_DIR=./cache
 TRONSCAN_LOG_LEVEL=INFO
+TRONSCAN_OUTPUT_FORMAT=xlsx
 ```
 
-Load configuration in your code:
+### Configuration File
 
-```python
-import os
-from dotenv import load_dotenv
+Configuration is stored in `.tronscan_settings.json`:
 
-load_dotenv()
-
-BASE_URL = os.getenv('TRONSCAN_BASE_URL', 'https://apilist.tronscan.org')
-API_KEY = os.getenv('TRONSCAN_API_KEY')
-TIMEOUT = int(os.getenv('TRONSCAN_TIMEOUT', 30))
-MAX_RETRIES = int(os.getenv('TRONSCAN_RETRIES', 3))
-INITIAL_RETRY_DELAY = float(os.getenv('TRONSCAN_RETRY_DELAY', 1))
+```json
+{
+  "api_key": "your-tron-pro-api-key",
+  "base_url": "https://apilist.tronscanapi.com",
+  "timeout": 30,
+  "cache_enabled": true,
+  "cache_ttl": 3600,
+  "log_level": "INFO",
+  "output_format": "xlsx",
+  "verbose": false
+}
 ```
+
+### Configuration Management Commands
+
+```bash
+# Show current configuration
+tronscan config show
+
+# Set a configuration value
+tronscan config set api_key your-new-key
+
+# Reset to defaults
+tronscan config reset
+
+# Show cache directory
+tronscan config show --include-cache
+```
+
+### Priority Order
+
+1. CLI flags (highest priority)
+2. Environment variables
+3. Configuration file (`.tronscan_settings.json`)
+4. Default values (lowest priority)
 
 ---
 
 ## Authentication
 
-Tronscan API requires an API key passed in the request header:
+### API Key Authentication
+
+The Tronscan API uses an API key passed in the `TRON-PRO-API-KEY` request header.
+
+```bash
+# Via environment variable (recommended)
+export TRONSCAN_API_KEY=your-tron-pro-api-key-here
+
+# Via CLI configuration
+tronscan config set api_key your-tron-pro-api-key-here
+
+# Via command flag (temporary override)
+tronscan accounts list --api-key your-tron-pro-api-key-here
+```
+
+### Authentication Methods
+
+**Method 1: Environment Variable (Recommended)**
+
+```bash
+export TRONSCAN_API_KEY="your-tron-pro-api-key"
+tronscan accounts list
+```
+
+**Method 2: .env File**
+
+Create a `.env` file in your project root:
+```env
+TRONSCAN_API_KEY=your-tron-pro-api-key
+```
+
+**Method 3: CLI Flag (Temporary)**
+
+```bash
+tronscan accounts list --api-key your-tron-pro-api-key
+```
+
+### httpx Client Setup
+
+The client uses `httpx` with the API key header injected on every request:
 
 ```python
 import httpx
 
-API_KEY = "your_api_key_here"
-
-headers = {
-    "X-API-Key": API_KEY,
-    "User-Agent": "Tronscan-Python-Client/1.0"
-}
-
-async with httpx.AsyncClient(headers=headers, timeout=30) as client:
-    response = await client.get(f"{BASE_URL}/api/account", params={"address": "..."})
+client = httpx.Client(
+    base_url="https://apilist.tronscanapi.com",
+    headers={"TRON-PRO-API-KEY": api_key},
+    timeout=30.0,
+)
 ```
 
-### Getting an API Key
+For connection pooling and session reuse, use `httpx.Client` as a context manager:
 
-1. Visit https://tronscan.org
-2. Register or log in
-3. Navigate to API settings
-4. Generate a new API key
-5. Add to your `.env` file
+```python
+with httpx.Client(base_url=BASE_URL, headers=auth_headers) as client:
+    response = client.get("/api/accountv2", params={"address": address})
+```
+
+### Error Handling
+
+- **Missing API Key:** Error message with setup instructions shown
+- **Invalid API Key:** HTTP 401 response, check key validity
+- **Rate Limited:** HTTP 429, automatic retry with backoff
+
+### Best Practices
+
+✓ Never hardcode API keys in scripts
+✓ Use `.env` file and add it to `.gitignore`
+✓ Rotate keys regularly
+✓ Keep keys out of version control
 
 ---
 
-## API Endpoints Reference
+## Endpoint Reference
+
+### Resource Naming
+
+Each API resource corresponds to a Click command group:
+
+| Resource | Command Group | Description |
+|----------|--------------|-------------|
+| Accounts | `tronscan accounts` | TRON account operations |
+| Blocks | `tronscan blocks` | Blockchain block data |
+| Contracts | `tronscan contracts` | Smart contract info |
+
+---
 
 ### ACCOUNTS
 
-#### 1. Get Account Information
+#### 1. List Accounts
 
-**Endpoint:** `GET /api/account`
+- **Command:** `tronscan accounts list`
+- **Method:** GET
+- **Path:** `/api/account/list`
+- **Description:** Returns a paginated list of TRON accounts, sortable by balance or other criteria.
+- **Parameters:**
 
-**Purpose:** Retrieve detailed information about a TRON account by address.
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--start` | integer | No | 0 | Start index for pagination |
+| `--limit` | integer | No | 10 | Number of items per page |
+| `--sort` | string | No | — | Sort criteria (e.g., `-balance` for descending balance) |
 
-**Python Example:**
+- **Response:**
+  ```json
+  {
+    "data": [...],
+    "total": 1000,
+    "rangeTotal": 1000
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  # List top 20 accounts by balance
+  tronscan accounts list --limit 20 --sort -balance
 
-```python
-import httpx
-import json
+  # Paginate
+  tronscan accounts list --start 100 --limit 50
 
-async def get_account(address: str):
-    """Get account information by address."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/account",
-            params={"address": address},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-
-# Usage
-import asyncio
-account = asyncio.run(get_account("TR7NHqjeKQxGTCi8q282aCYGS1E9Fvqz9L"))
-print(json.dumps(account, indent=2))
-```
-
-#### 2. Get Voting Information
-
-**Endpoint:** `GET /api/account/{address}/votes`
-
-**Purpose:** Retrieve voting information for a specific account.
-
-**Python Example:**
-
-```python
-async def get_account_votes(address: str):
-    """Get voting information for an account."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"https://apilist.tronscan.org/api/account/{address}/votes",
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-
-# Usage
-votes = asyncio.run(get_account_votes("TR7NHqjeKQxGTCi8q282aCYGS1E9Fvqz9L"))
-```
-
-#### 3. Get Paginated Account List
-
-**Endpoint:** `GET /api/accountlist`
-
-**Purpose:** Retrieve a paginated list of accounts.
-
-**Query Parameters:**
-- `start` (optional): Starting index
-- `limit` (optional): Number of results per page (default: 20, max: 200)
-- `sort` (optional): Sort field
-
-**Python Example:**
-
-```python
-async def get_account_list(start: int = 0, limit: int = 20):
-    """Get paginated list of accounts."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/accountlist",
-            params={"start": start, "limit": limit},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
+  # Save to XLSX
+  tronscan accounts list --limit 100 --format xlsx --output-file accounts.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/account/list", params={
+      "start": 0,
+      "limit": 10,
+      "sort": "-balance"
+  })
+  ```
 
 ---
 
-### TRANSACTIONS
+#### 2. Get Account Details
 
-#### 1. Get Transaction Details
+- **Command:** `tronscan accounts get`
+- **Method:** GET
+- **Path:** `/api/accountv2`
+- **Description:** Retrieves comprehensive account information including permissions, token holdings, and staking resources.
+- **Parameters:**
 
-**Endpoint:** `GET /api/transaction`
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--address` | string | **Yes** | — | TRON account address (base58 or hex) |
 
-**Purpose:** Retrieve detailed information about a specific transaction by hash.
+- **Response:**
+  ```json
+  {
+    "address": "TAddr...",
+    "balance": 1000000,
+    "assetV2": {},
+    "accountPermission": []
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  tronscan accounts get --address TAddr1234567890abcdef
+  tronscan accounts get --address TAddr1234567890abcdef --format xlsx --output-file account.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/accountv2", params={"address": "TAddr..."})
+  ```
 
-**Python Example:**
+---
 
-```python
-async def get_transaction(tx_hash: str):
-    """Get transaction details by hash."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/transaction",
-            params={"hash": tx_hash},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
+#### 3. Get Account Tokens
 
-#### 2. Get Transaction Count
+- **Command:** `tronscan accounts tokens`
+- **Method:** GET
+- **Path:** `/api/account/tokens`
+- **Description:** Lists all tokens held by an account with non-zero balance.
+- **Parameters:**
 
-**Endpoint:** `GET /api/transaction/count`
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--address` | string | **Yes** | — | TRON account address |
+| `--start` | integer | No | 0 | Start index for pagination |
+| `--limit` | integer | No | 10 | Items per page |
+| `--hidden` | boolean | No | false | Include hidden tokens |
+| `--sort-by` | string | No | — | Sort by field name |
 
-**Purpose:** Get the total transaction count.
-
-**Python Example:**
-
-```python
-async def get_transaction_count():
-    """Get total transaction count."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/transaction/count",
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-#### 3. Get Paginated Transaction List
-
-**Endpoint:** `GET /api/transactionlist`
-
-**Purpose:** Retrieve a paginated list of transactions.
-
-**Parameters:**
-- `start` (optional): Starting index
-- `limit` (optional): Results per page
-- `sort` (optional): Sort field
-
-#### 4. Get Transaction Count Statistics
-
-**Endpoint:** `GET /api/transactioncount`
-
-**Purpose:** Get transaction count statistics.
+- **Response:**
+  ```json
+  {
+    "data": [...],
+    "total": 25
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  tronscan accounts tokens --address TAddr1234567890abcdef
+  tronscan accounts tokens --address TAddr1234567890abcdef --limit 50 --sort-by balance
+  tronscan accounts tokens --address TAddr1234567890abcdef --format xlsx --output-file tokens.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/account/tokens", params={
+      "address": "TAddr...",
+      "start": 0,
+      "limit": 10,
+      "hidden": False,
+      "sortBy": "balance"
+  })
+  ```
 
 ---
 
 ### BLOCKS
 
-#### 1. Get Block Information
+#### 4. Get Block Information
 
-**Endpoint:** `GET /api/block`
+- **Command:** `tronscan blocks list`
+- **Method:** GET
+- **Path:** `/api/block`
+- **Description:** Returns paginated block information, optionally filtered by producer (super representative).
+- **Parameters:**
 
-**Purpose:** Retrieve information about a block by number.
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--start` | integer | No | 0 | Start index for pagination |
+| `--limit` | integer | No | 10 | Items per page |
+| `--producer` | string | No | — | Super representative address filter |
+| `--sort` | string | No | `-number` | Sort criteria (default: newest first) |
+| `--start-timestamp` | integer | No | — | Filter from timestamp (Unix ms) |
 
-**Python Example:**
+- **Response:**
+  ```json
+  {
+    "data": [...],
+    "total": 50000000
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  # List latest 20 blocks
+  tronscan blocks list --limit 20
 
-```python
-async def get_block(block_number: int):
-    """Get block information by number."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/block",
-            params={"number": block_number},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
+  # Blocks by a specific SR
+  tronscan blocks list --producer TAddr_SR --limit 50
 
-#### 2. Get Paginated Block List
+  # Blocks after timestamp
+  tronscan blocks list --start-timestamp 1700000000000 --limit 100
 
-**Endpoint:** `GET /api/blocklist`
-
-**Purpose:** Retrieve a paginated list of blocks.
-
-#### 3. Get Block Count
-
-**Endpoint:** `GET /api/blockcount`
-
-**Purpose:** Get the total block count.
-
----
-
-### SMART CONTRACTS
-
-#### 1. Get Smart Contract Information
-
-**Endpoint:** `GET /api/contract`
-
-**Purpose:** Retrieve information about a smart contract.
-
-**Python Example:**
-
-```python
-async def get_contract(address: str):
-    """Get smart contract information."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/contract",
-            params={"address": address},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-#### 2. Get Paginated Contract List
-
-**Endpoint:** `GET /api/contractlist`
-
-**Purpose:** Retrieve a paginated list of smart contracts.
+  # Save to XLSX
+  tronscan blocks list --limit 100 --format xlsx --output-file blocks.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/block", params={
+      "start": 0,
+      "limit": 10,
+      "sort": "-number"
+  })
+  ```
 
 ---
 
-### TRANSFERS
+#### 5. Get Block Statistics
 
-#### 1. Get Token Transfer Information
+- **Command:** `tronscan blocks stats`
+- **Method:** GET
+- **Path:** `/api/block/statistic`
+- **Description:** Returns statistical summary of blocks including burn, count, and last day pay.
+- **Parameters:** None
 
-**Endpoint:** `GET /api/transfer`
-
-**Purpose:** Retrieve token transfer details.
-
-**Python Example:**
-
-```python
-async def get_transfer(transfer_hash: str):
-    """Get token transfer information."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/transfer",
-            params={"hash": transfer_hash},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-#### 2. Get Paginated Transfer List
-
-**Endpoint:** `GET /api/transferlist`
-
-**Purpose:** Retrieve a paginated list of token transfers.
+- **Response:**
+  ```json
+  {
+    "lastDayPay": 28000000,
+    "blockCount": 50000000,
+    "totalBurn": 99999999
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  tronscan blocks stats
+  tronscan blocks stats --format xlsx --output-file block_stats.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/block/statistic")
+  ```
 
 ---
 
-### TOKENS
+### CONTRACTS
 
-#### 1. Get Token Information
+#### 6. List Contracts
 
-**Endpoint:** `GET /api/token`
+- **Command:** `tronscan contracts list`
+- **Method:** GET
+- **Path:** `/api/contracts`
+- **Description:** Returns a paginated list of smart contracts with optional search and filtering.
+- **Parameters:**
 
-**Purpose:** Retrieve information about a token.
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--search` | string | No | — | Search term for contract name/address |
+| `--start` | integer | No | 0 | Start index for pagination |
+| `--limit` | integer | No | 10 | Items per page |
+| `--sort` | string | No | — | Sort criteria |
+| `--open-source-only` | boolean | No | false | Filter to open-source contracts only |
 
-**Python Example:**
-
-```python
-async def get_token(address: str):
-    """Get token information."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/token",
-            params={"address": address},
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-#### 2. Get Paginated Token List
-
-**Endpoint:** `GET /api/tokenlist`
-
-**Purpose:** Retrieve a paginated list of tokens.
-
----
-
-### NETWORK
-
-#### 1. Get Blockchain Network Parameters
-
-**Endpoint:** `GET /api/chain/parameters`
-
-**Purpose:** Retrieve blockchain network parameters and settings.
-
-**Python Example:**
-
-```python
-async def get_chain_parameters():
-    """Get blockchain network parameters."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/chain/parameters",
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
-
-#### 2. Get Blockchain Statistics
-
-**Endpoint:** `GET /api/chain/stat`
-
-**Purpose:** Retrieve overall blockchain statistics.
-
-**Python Example:**
-
-```python
-async def get_chain_stat():
-    """Get blockchain statistics."""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://apilist.tronscan.org/api/chain/stat",
-            headers={"X-API-Key": API_KEY}
-        )
-        response.raise_for_status()
-        return response.json()
-```
+- **Response:**
+  ```json
+  {
+    "data": [...],
+    "total": 5000
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  tronscan contracts list --limit 20
+  tronscan contracts list --search USDT --open-source-only
+  tronscan contracts list --limit 100 --format xlsx --output-file contracts.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/contracts", params={
+      "search": "USDT",
+      "start": 0,
+      "limit": 10,
+      "open-source-only": True
+  })
+  ```
 
 ---
 
-## Batch Request Processing
+#### 7. Get Contract Details
 
-### CSV Batch Format
+- **Command:** `tronscan contracts get`
+- **Method:** GET
+- **Path:** `/api/contract`
+- **Description:** Retrieves comprehensive details for a specific smart contract.
+- **Parameters:**
 
-Create a CSV file with requests:
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--contract` | string | **Yes** | — | Contract address |
 
+- **Response:**
+  ```json
+  {
+    "contract_address": "TAddr...",
+    "name": "MyContract",
+    "code": "...",
+    "constructor_parameter": "..."
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  tronscan contracts get --contract TAddr_contract
+  tronscan contracts get --contract TAddr_contract --format xlsx --output-file contract_detail.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.get("/api/contract", params={"contract": "TAddr..."})
+  ```
+
+---
+
+#### 8. Get Contract Event Information (Batch)
+
+- **Command:** `tronscan contracts events`
+- **Method:** POST
+- **Path:** `/api/contracts/smart-contract-triggers-batch`
+- **Description:** Returns a list of event logs for a contract, optionally filtered by transaction hashes.
+- **Parameters (Request Body):**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `--contract-address` | string | No | Contract address filter |
+| `--hash` | string (multiple) | No | Transaction hash(es) to filter by |
+| `--term` | string | No | Search term |
+| `--limit` | integer | No | Number of events to return |
+
+- **Response:**
+  ```json
+  {
+    "data": [...]
+  }
+  ```
+- **CLI Example:**
+  ```bash
+  tronscan contracts events --contract-address TAddr_contract --limit 50
+  tronscan contracts events --contract-address TAddr_contract --term Transfer --limit 100
+  tronscan contracts events --contract-address TAddr_contract --format xlsx --output-file events.xlsx
+  ```
+- **httpx Example:**
+  ```python
+  response = client.post("/api/contracts/smart-contract-triggers-batch", json={
+      "contractAddress": "TAddr...",
+      "hashList": [],
+      "term": "Transfer",
+      "limit": 50
+  })
+  ```
+
+---
+
+## Input/Output Examples
+
+### Single Request Examples
+
+#### List Top Accounts
+
+**Command:**
+```bash
+tronscan accounts list --limit 5 --sort -balance
+```
+
+**Output (XLSX):** `accounts_list.xlsx`
+
+| address | balance | name | ... |
+|---------|---------|------|-----|
+| TAddr1... | 9999999 | Foundation | ... |
+| TAddr2... | 8888888 | Exchange1 | ... |
+
+---
+
+#### Get Block Statistics
+
+**Command:**
+```bash
+tronscan blocks stats --format xlsx --output-file block_stats.xlsx
+```
+
+**Output (XLSX):** `block_stats.xlsx`
+
+| lastDayPay | blockCount | totalBurn |
+|------------|------------|-----------|
+| 28000000 | 50000000 | 99999999 |
+
+---
+
+### Batch Processing Examples
+
+#### Batch Account Lookups (CSV Input)
+
+**File: `data/batch_accounts.csv`**
 ```csv
-method,endpoint,address
-GET,/api/account,TR7NHqjeKQxGTCi8q282aCYGS1E9Fvqz9L
-GET,/api/account,TJzzWvwj8WJnhHa2H8QJgKvfAPXqnwXUHz
-GET,/api/token,TR7NHqjeKQxGTCi8q282aCYGS1E9Fvqz9L
+address
+TAddr1234567890abcdef
+TAddr0987654321fedcba
+TAddrABCDEF1234567890
 ```
 
-### Processing Batch Requests
+**Command:**
+```bash
+tronscan batch process --input data/batch_accounts.csv --endpoint accounts-get --format xlsx
+```
 
-```python
-import csv
-import asyncio
-import httpx
+**Output:** `output/batch_accounts_20260219_120000.xlsx`
+- Sheet `Results`: One row per account with all fields
+- Sheet `Errors`: Any failed lookups with error details
+- Sheet `Summary`: Total processed, success count, error count
 
-async def process_batch_csv(csv_file: str):
-    """Process batch requests from CSV file."""
-    results = []
+---
 
-    async with httpx.AsyncClient(headers={"X-API-Key": API_KEY}) as client:
-        with open(csv_file, 'r') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                method = row['method'].upper()
-                endpoint = row['endpoint']
+#### Batch Block Queries (JSONL Input)
 
-                try:
-                    response = await client.request(
-                        method,
-                        f"https://apilist.tronscan.org{endpoint}",
-                        params={k: v for k, v in row.items()
-                               if k not in ['method', 'endpoint']},
-                        timeout=30
-                    )
-                    response.raise_for_status()
+**File: `data/batch_blocks.jsonl`**
+```jsonl
+{"producer": "TAddr_SR1", "limit": 10}
+{"producer": "TAddr_SR2", "limit": 10}
+{"start_timestamp": 1700000000000, "limit": 5}
+```
 
-                    results.append({
-                        'endpoint': endpoint,
-                        'status': 'success',
-                        'data': response.json()
-                    })
-                except httpx.HTTPError as e:
-                    results.append({
-                        'endpoint': endpoint,
-                        'status': 'error',
-                        'error': str(e)
-                    })
-
-    return results
-
-# Usage
-results = asyncio.run(process_batch_csv('requests.csv'))
+**Command:**
+```bash
+tronscan batch process --input data/batch_blocks.jsonl --endpoint blocks-list --format xlsx
 ```
 
 ---
 
-## Error Handling & Retry Logic
+### Output Format
 
-### HTTP Status Codes
+#### XLSX (Default output format)
 
-- **200 OK:** Successful request
-- **400 Bad Request:** Invalid parameters
-- **401 Unauthorized:** Invalid or missing API key
-- **403 Forbidden:** Insufficient permissions
-- **404 Not Found:** Resource not found
-- **429 Too Many Requests:** Rate limit exceeded
-- **500 Internal Server Error:** Server-side error
-- **502 Bad Gateway:** Temporary unavailability
-- **503 Service Unavailable:** Maintenance or overload
-- **504 Gateway Timeout:** Request timeout
+```bash
+tronscan accounts list --limit 100 --format xlsx --output-file accounts.xlsx
+```
 
-### Retry Strategy
+- UTF-8 encoding
+- Floats formatted with 0 decimal places
+- No index column
+- Auto-sized columns for readability
+- Opens directly in Excel/LibreOffice Calc
 
-```python
-import httpx
-from typing import Optional
-import time
+---
 
-async def request_with_retry(
-    method: str,
-    url: str,
-    max_retries: int = 3,
-    initial_delay: float = 1.0,
-    backoff_multiplier: float = 2.0
-) -> Optional[dict]:
-    """Execute request with exponential backoff retry logic."""
+## Caching
 
-    retriable_status_codes = {408, 429, 500, 502, 503, 504}
-    delay = initial_delay
+### Overview
 
-    for attempt in range(max_retries):
-        try:
-            async with httpx.AsyncClient(
-                headers={"X-API-Key": API_KEY},
-                timeout=30
-            ) as client:
-                response = await client.request(method, url)
+The client caches GET API responses to reduce quota consumption on repeated queries. POST requests (contract events batch) are not cached by default.
 
-                if response.status_code in retriable_status_codes and attempt < max_retries - 1:
-                    wait_time = delay * (0.9 + 0.2 * __import__('random').random())
-                    print(f"Retry attempt {attempt + 1} after {wait_time:.2f}s")
-                    await asyncio.sleep(wait_time)
-                    delay *= backoff_multiplier
-                    continue
+### Cache Configuration
 
-                response.raise_for_status()
-                return response.json()
+```bash
+# Check cache status
+tronscan config show | grep cache_enabled
 
-        except httpx.HTTPError as e:
-            if attempt == max_retries - 1:
-                print(f"Max retries exceeded: {e}")
-                return None
+# Bypass cache for fresh data
+tronscan accounts get --address TAddr... --override
 
-            wait_time = delay * (0.9 + 0.2 * __import__('random').random())
-            await asyncio.sleep(wait_time)
-            delay *= backoff_multiplier
+# Disable caching permanently
+tronscan config set cache_enabled false
+```
 
-    return None
+**Cache Location:**
+
+```bash
+# Default: ~/.cache/tronscan/
+# Custom location:
+tronscan config set cache_dir /custom/cache/path
+```
+
+**Cache TTL (Time-To-Live):**
+
+```bash
+# View current TTL (default: 3600 seconds / 1 hour)
+tronscan config show | grep cache_ttl
+
+# Set custom TTL (in seconds)
+tronscan config set cache_ttl 1800  # 30 minutes for faster-changing blockchain data
+```
+
+### Cache Management Commands
+
+```bash
+tronscan cache list
+tronscan cache info
+tronscan cache delete --key accounts_list_abc123
+tronscan cache clear --confirm
+```
+
+### Cache Key Strategy
+
+```
+Method:Endpoint:ParamHash
+GET:/api/accountv2:sha256(address=TAddr...)
+GET:/api/block:sha256(start=0&limit=10&sort=-number)
+```
+
+### Best Practices
+
+✓ Use caching for account/contract lookups (data changes infrequently)
+✓ Set shorter TTL (300–600s) for block data (new blocks every ~3 seconds on TRON)
+✓ Bypass cache (`--override`) for real-time balance checks
+✓ Clear cache after long gaps between sessions
+
+---
+
+## Rate Limiting
+
+### API Rate Limits
+
+Tronscan API enforces rate limits based on the `TRON-PRO-API-KEY` tier:
+
+- **Free tier:** ~15 requests/second
+- **Pro tier:** Higher limits based on plan
+- **Burst:** May vary; always handle 429 gracefully
+
+### Client Rate Limiting
+
+The client implements:
+
+**Courtesy Delay:**
+- 100ms delay between consecutive requests
+- Prevents accidental rate limit violations
+
+**Automatic Retry on 429:**
+- Max attempts: 3
+- Delays: 1s → 2s → 4s (exponential backoff)
+- Jitter: ±10% randomization
+
+### Configuration
+
+```bash
+tronscan config set max_retries 3
+tronscan config set backoff_multiplier 2
+tronscan config set courtesy_delay 100  # milliseconds
+```
+
+### Rate Limit Handling Example
+
+```bash
+tronscan accounts list --verbose
+# [INFO] GET /api/account/list (0.23s, cached=false)
+# [WARNING] Rate limited (429), retrying in 1.1 seconds...
+# [INFO] Retry 1/3 successful
 ```
 
 ---
 
-## Output Formatting
+## Error Handling
 
-### JSON Output
+### Error Classification
 
-```python
-import json
-
-def format_json(data: dict) -> str:
-    """Format response as JSON."""
-    return json.dumps(data, indent=2)
-
-# Save to file
-with open('output.json', 'w') as f:
-    json.dump(data, f, indent=2)
-```
-
-### XLSX Output
-
-```python
-import pandas as pd
-
-def export_to_xlsx(data: list, output_file: str):
-    """Export results to Excel file."""
-    df = pd.DataFrame(data)
-
-    # Format floats with 0 decimal places
-    float_cols = df.select_dtypes(include=['float64']).columns
-    df[float_cols] = df[float_cols].astype('int64')
-
-    # Save without index
-    df.to_excel(output_file, index=False, engine='openpyxl')
-    print(f"Data exported to {output_file}")
-
-# Usage
-results = [
-    {'address': 'TR7NHq...', 'balance': '1000000000'},
-    {'address': 'TJzzWv...', 'balance': '500000000'}
-]
-export_to_xlsx(results, 'accounts.xlsx')
-```
-
----
-
-## Performance Optimization
-
-### Connection Pooling
-
-```python
-import httpx
-
-# Reuse client for multiple requests
-async def query_multiple_accounts(addresses: list):
-    """Query multiple accounts efficiently with connection pooling."""
-
-    limits = httpx.Limits(max_connections=10, max_keepalive_connections=10)
-
-    async with httpx.AsyncClient(
-        limits=limits,
-        headers={"X-API-Key": API_KEY},
-        timeout=30
-    ) as client:
-        tasks = [
-            client.get(
-                "https://apilist.tronscan.org/api/account",
-                params={"address": addr}
-            )
-            for addr in addresses
-        ]
-
-        responses = await asyncio.gather(*tasks)
-        return [r.json() for r in responses]
-```
-
-### Rate Limiting
-
-```python
-import asyncio
-from typing import List
-
-async def rate_limited_requests(
-    urls: List[str],
-    requests_per_second: float = 2.0
-):
-    """Execute requests with rate limiting (100ms delay between requests)."""
-
-    delay = 1.0 / requests_per_second
-
-    async with httpx.AsyncClient(
-        headers={"X-API-Key": API_KEY}
-    ) as client:
-        for url in urls:
-            response = await client.get(url)
-            yield response.json()
-            await asyncio.sleep(delay)
-```
-
-### Pagination Pattern
-
-```python
-async def fetch_all_pages(endpoint: str, limit: int = 200):
-    """Fetch all pages of paginated endpoint."""
-    all_results = []
-    start = 0
-
-    async with httpx.AsyncClient(
-        headers={"X-API-Key": API_KEY}
-    ) as client:
-        while True:
-            response = await client.get(
-                f"https://apilist.tronscan.org{endpoint}",
-                params={"start": start, "limit": limit}
-            )
-            response.raise_for_status()
-
-            data = response.json()
-            if not data.get('data'):
-                break
-
-            all_results.extend(data['data'])
-            start += limit
-
-    return all_results
-```
-
----
-
-## Logging Best Practices
-
-### Configure Logging
-
-```python
-import logging
-from datetime import datetime
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('tronscan_client.log'),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
-def log_request(method: str, url: str, params: dict = None):
-    """Log API request."""
-    logger.info(f"Request: {method} {url} with params={params}")
-
-def log_response(status_code: int, response_time: float):
-    """Log API response."""
-    logger.info(f"Response: Status={status_code}, Duration={response_time:.2f}s")
-
-def log_error(error: Exception, retry_attempt: int = 0):
-    """Log errors with retry context."""
-    if retry_attempt > 0:
-        logger.warning(f"Retry attempt {retry_attempt}: {error}")
-    else:
-        logger.error(f"Error: {error}")
-```
-
-### Debug Mode
-
-```python
-def enable_debug_logging():
-    """Enable detailed debug logging."""
-    logging.getLogger().setLevel(logging.DEBUG)
-    logging.getLogger('httpx').setLevel(logging.DEBUG)
-
-    logger.debug("Debug logging enabled")
-    logger.debug(f"API Key: {API_KEY[:10]}...")
-    logger.debug(f"Base URL: {BASE_URL}")
-```
-
----
-
-## Best Practices Summary
-
-1. **Always use API keys securely** - Never hardcode keys, use environment variables
-2. **Implement exponential backoff** - Use jittered delays to avoid thundering herd
-3. **Handle rate limits gracefully** - Respect 429 responses and adjust request rate
-4. **Use connection pooling** - Reuse httpx clients for efficiency
-5. **Log all requests** - Track API usage for debugging and auditing
-6. **Cache when appropriate** - Store frequently accessed data locally
-7. **Validate parameters** - Check inputs before sending requests
-8. **Use timeouts** - Always set request timeouts to prevent hanging
-9. **Process batches efficiently** - Use async for concurrent requests
-10. **Monitor quota usage** - Track API calls against any limits
-
----
-
-## Troubleshooting
+| Category | HTTP Codes | Action |
+|----------|-----------|--------|
+| Network | 5xx, timeout | Auto-retry with backoff |
+| Rate Limit | 429 | Auto-retry with longer backoff |
+| Client | 400, 401, 403, 404 | Display error, no retry |
+| Data | — | Raise exception with details |
 
 ### Common Errors
 
-**401 Unauthorized**
-- Verify API key in `.env` file
-- Check header format: `X-API-Key: your_key_here`
-- Ensure API key hasn't expired
+| Error | Cause | Solution |
+|-------|-------|----------|
+| 401 Unauthorized | Invalid/missing `TRON-PRO-API-KEY` | Check `TRONSCAN_API_KEY` in `.env` |
+| 403 Forbidden | Insufficient API key tier | Upgrade Tronscan API plan |
+| 404 Not Found | Invalid address or contract | Verify address on tronscan.org |
+| 429 Too Many Requests | Rate limit exceeded | Reduce request frequency; auto-retry handles this |
+| 500 Server Error | Tronscan API issue | Retry later (auto-retry enabled) |
+| Connection timeout | Network issue | Check connectivity |
 
-**429 Too Many Requests**
-- Implement exponential backoff retry logic
-- Add rate limiting (100ms+ between requests)
-- Check if quota has been exceeded
+### Error Output
 
-**504 Gateway Timeout**
-- Increase timeout value in client configuration
-- Reduce batch size for concurrent requests
-- Implement retry logic with longer delays
+```bash
+tronscan accounts get --address INVALID_ADDR 2>&1
+# Error: Account not found (404) — address: INVALID_ADDR
+# Tip: Verify address at https://tronscan.org/#/address/INVALID_ADDR
 
-**Empty Response**
-- Verify endpoint URL and parameters
-- Check if resource exists (404 errors)
-- Ensure required parameters are provided
+tronscan accounts get --address TAddr... --verbose
+# [DEBUG] GET /api/accountv2?address=TAddr...
+# [DEBUG] Response 200: {"address": "TAddr...", ...}
+```
+
+### Best Practices
+
+✓ Use `--verbose` for debugging
+✓ Validate TRON addresses before batch operations
+✓ Check logs for retry patterns indicating rate limit issues
+✗ Don't retry immediately on 4xx errors
 
 ---
 
-## Related Resources
+## Logging
 
-- **API Documentation:** https://tronscan.org
-- **TRON Network:** https://tron.network
-- **httpx Documentation:** https://www.python-httpx.org
-- **Pandas Documentation:** https://pandas.pydata.org
+### Log Levels
+
+| Level | Usage |
+|-------|-------|
+| DEBUG | Full request/response payloads, headers |
+| INFO (default) | API calls, cache hits, timing, retries |
+| WARNING | Rate limit events, deprecated endpoints |
+| ERROR | Failed requests, validation errors |
+
+### Configuration
+
+```bash
+tronscan config set log_level DEBUG
+export TRONSCAN_LOG_LEVEL=DEBUG
+tronscan accounts list --verbose  # equivalent to DEBUG for this request
+```
+
+### Log Format
+
+```
+2026-02-19 12:30:45,123 - tronscan - INFO - GET /api/account/list (0.42s, cached=false)
+2026-02-19 12:30:45,200 - tronscan - INFO - Saved 100 rows → output/accounts.xlsx
+2026-02-19 12:30:46,301 - tronscan - WARNING - 429 Rate limited, retry 1/3 in 1.1s
+2026-02-19 12:30:47,512 - tronscan - INFO - GET /api/block (0.31s, cached=true) [CACHE HIT]
+```
+
+### Log File Location
+
+```
+~/.cache/tronscan/tronscan.log
+```
 
 ---
 
-**Last Updated:** 2026-02-15
-**Status:** Ready for Python CLI development
+## Best Click Practices
+
+### CLI Command Design
+
+```bash
+# ✓ Good: options with --help discoverability
+tronscan accounts get --address TAddr...
+tronscan blocks list --limit 50 --sort -number
+
+# ✗ Bad: positional arguments
+tronscan accounts get TAddr...
+```
+
+### Standard Options (All Commands)
+
+```
+--format xlsx               Output format (xlsx)
+--output-file PATH          Save output to file
+--verbose                   Show detailed debug output
+--api-key KEY               Override API key for this call
+--timeout SECONDS           Request timeout (default: 30)
+--no-cache                  Skip cache for this request
+--override                  Force fresh fetch (bypass cache)
+--dry-run                   Show request without executing
+```
+
+### Pagination Options (List Commands)
+
+```
+--start N                   Start index (default: 0)
+--limit N                   Items per page (default: 10, max: 200)
+--sort FIELD                Sort expression (e.g., -balance)
+```
+
+### Command Hierarchy
+
+```
+tronscan
+├── accounts
+│   ├── list              # GET /api/account/list
+│   ├── get               # GET /api/accountv2
+│   └── tokens            # GET /api/account/tokens
+├── blocks
+│   ├── list              # GET /api/block
+│   └── stats             # GET /api/block/statistic
+├── contracts
+│   ├── list              # GET /api/contracts
+│   ├── get               # GET /api/contract
+│   └── events            # POST /api/contracts/smart-contract-triggers-batch
+├── batch
+│   └── process           # Batch processing from CSV/JSONL
+├── cache
+│   ├── list
+│   ├── info
+│   ├── delete
+│   └── clear
+└── config
+    ├── show
+    ├── set
+    └── reset
+```
+
+### Error Messages
+
+```
+✓ Error: Account not found (404) — address: INVALID_ADDR
+✓ Solution: Verify address at https://tronscan.org or use 'tronscan accounts list'
+
+✗ Error: 404
+```
+
+---
+
+## Makefile & Project Management
+
+### Project Structure
+
+```
+tronscan-cli/
+├── Makefile
+├── pyproject.toml
+├── uv.lock
+├── README.md
+├── .env.example
+├── src/
+│   └── tronscan_cli/
+│       ├── __init__.py
+│       ├── cli.py                    # Click root group
+│       ├── client.py                 # httpx client wrapper
+│       ├── config.py                 # .env + settings management
+│       ├── cache.py                  # Cache logic
+│       ├── logger.py                 # Logging setup
+│       └── commands/
+│           ├── __init__.py
+│           ├── accounts.py           # accounts list/get/tokens
+│           ├── blocks.py             # blocks list/stats
+│           └── contracts.py          # contracts list/get/events
+├── data/                             # User batch input files
+├── output/                           # Generated XLSX output
+├── tests/
+│   ├── conftest.py
+│   ├── test_cli.py
+│   └── test_client.py
+└── examples/
+    ├── batch_accounts.csv
+    ├── batch_blocks.jsonl
+    └── basic_usage.sh
+```
+
+### .env.example
+
+```env
+# Required
+TRONSCAN_API_KEY=your-tron-pro-api-key-here
+
+# Optional
+TRONSCAN_BASE_URL=https://apilist.tronscanapi.com
+TRONSCAN_TIMEOUT=30
+TRONSCAN_CACHE_DIR=./cache
+TRONSCAN_LOG_LEVEL=INFO
+TRONSCAN_OUTPUT_FORMAT=xlsx
+```
+
+### Makefile
+
+```makefile
+.PHONY: help install install-dev lint format test test-cov clean build
+
+PROJECT_NAME := tronscan
+
+help:
+	@echo "tronscan-cli — Available commands:"
+	@echo ""
+	@echo "  Setup:"
+	@echo "    make install          Install dependencies (uv sync)"
+	@echo "    make install-dev      Install with dev dependencies"
+	@echo ""
+	@echo "  Development:"
+	@echo "    make lint             Run linters"
+	@echo "    make format           Format code"
+	@echo "    make test             Run tests"
+	@echo "    make test-cov         Run tests with coverage"
+	@echo "    make clean            Clean artifacts"
+	@echo ""
+	@echo "  CLI examples:"
+	@echo "    make accounts-list    List top accounts"
+	@echo "    make accounts-get     Get account details (ADDRESS=...)"
+	@echo "    make blocks-list      List latest blocks"
+	@echo "    make blocks-stats     Get block statistics"
+	@echo "    make contracts-list   List smart contracts"
+	@echo "    make contracts-get    Get contract details (CONTRACT=...)"
+
+install:
+	uv sync
+
+install-dev:
+	uv sync --all-extras
+
+lint:
+	uv run black --check src/
+	uv run pylint src/
+
+format:
+	uv run black src/
+	uv run isort src/
+
+test:
+	uv run pytest tests/ -v
+
+test-cov:
+	uv run pytest tests/ -v --cov=src/
+
+clean:
+	rm -rf build/ dist/ *.egg-info/ .pytest_cache .coverage
+	find . -type d -name __pycache__ -exec rm -rf {} +
+
+build:
+	uv build
+
+# Endpoint shortcuts
+accounts-list:
+	uv run $(PROJECT_NAME) accounts list --limit 20 --sort -balance
+
+accounts-get:
+	uv run $(PROJECT_NAME) accounts get --address $(ADDRESS)
+
+blocks-list:
+	uv run $(PROJECT_NAME) blocks list --limit 20
+
+blocks-stats:
+	uv run $(PROJECT_NAME) blocks stats
+
+contracts-list:
+	uv run $(PROJECT_NAME) contracts list --limit 20
+
+contracts-get:
+	uv run $(PROJECT_NAME) contracts get --contract $(CONTRACT)
+
+.DEFAULT_GOAL := help
+```
+
+### Using uv
+
+```bash
+# Setup
+uv sync
+
+# Run CLI
+uv run tronscan accounts list --limit 10
+uv run tronscan blocks stats
+uv run tronscan contracts list --search USDT
+
+# Tests
+uv run pytest tests/ -v
+
+# Format
+uv run black src/
+uv run isort src/
+```
+
+---
+
+## Summary
+
+This PRD covers a production-ready Python CLI client for the **Tronscan TRON Blockchain Explorer API** with:
+
+- **3 resources:** Accounts, Blocks, Contracts
+- **8 endpoints** with full parameter documentation and httpx examples
+- **httpx** for HTTP requests with connection pooling
+- **XLSX** output via pandas + openpyxl
+- **Batch processing** from CSV/JSONL files
+- **Caching** with configurable TTL (recommended: short TTL for block data)
+- **Retry logic** with exponential backoff for rate limits
+- **uv** for project and dependency management
+
+For additional help:
+
+```bash
+tronscan --help
+tronscan accounts --help
+tronscan blocks --help
+tronscan contracts --help
+```
+
+**API Docs:** https://docs.tronscan.org/
+**API Server:** https://apilist.tronscanapi.com/
+**Explorer:** https://tronscan.org/

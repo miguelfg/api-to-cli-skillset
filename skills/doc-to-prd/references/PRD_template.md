@@ -1112,8 +1112,12 @@ dev = [
 [project.scripts]
 [cli-name] = "[cli_name].cli:main"
 
-[tool.uv]
-allow-direct-references = true
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 ```
 
 ### Sample Makefile with uv
