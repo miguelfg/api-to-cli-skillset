@@ -1,0 +1,308 @@
+openapi: 3.0.0
+info:
+  title: Open-Meteo API
+  version: 1.0.0
+  description: Generated from Open-Meteo documentation pages
+servers:
+- url: https://api.open-meteo.com
+paths:
+  /v1/air-quality:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/archive:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/bom:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/climate:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/cma:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/dmi:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/dwd-icon:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/ecmwf:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/elevation:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 5 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/ensemble:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/flood:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/forecast:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 70 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/gem:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/gfs:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/jma:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/knmi:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/marine:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/meteofrance:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/metno:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 2 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/search:
+    get:
+      summary: Open-Meteo endpoint discovered from docs (seen 1 times)
+      tags:
+      - Weather
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object

@@ -58,9 +58,16 @@ class PRDParser:
 
     def _extract_resources(self):
         """Extract API resources (e.g., pets, users, orders) from section headers."""
-        # Match ### RESOURCE headers or ### Resource (Capitalized)
-        resource_pattern = r'^###\s+([A-Z][A-Za-z]+)(?:\s+Resource)?$'
-        for match in re.finditer(resource_pattern, self.content, re.MULTILINE):
+        # Prefer explicit resource headers: "### <Name> Resource"
+        explicit_pattern = r'^###\s+([A-Z][A-Za-z]+)\s+Resource$'
+        matches = list(re.finditer(explicit_pattern, self.content, re.MULTILINE))
+
+        # Fallback for legacy PRDs that omit the "Resource" suffix.
+        if not matches:
+            fallback_pattern = r'^###\s+([A-Z][A-Za-z]+)$'
+            matches = list(re.finditer(fallback_pattern, self.content, re.MULTILINE))
+
+        for match in matches:
             resource_name = match.group(1).lower()
             self.resources[resource_name] = {
                 "name": resource_name,
@@ -130,7 +137,7 @@ class CLIProjectGenerator:
         """Generate main CLI entry point."""
         resources = self.parsed_prd["resources"]
         resource_imports = "\n".join(
-            f"from src.commands.{name}_commands import {name}" for name in resources.keys()
+            f"from src.commands.{name}_commands import {name}_group" for name in resources.keys()
         )
 
         cli_content = f'''#!/usr/bin/env python3
@@ -164,7 +171,7 @@ def cli(ctx, config, verbose):
 '''
 
         for resource_name in resources.keys():
-            cli_content += f"cli.add_command({resource_name}.{resource_name}_group, '{resource_name}')\n"
+            cli_content += f"cli.add_command({resource_name}_group, '{resource_name}')\n"
 
         cli_content += '''
 
@@ -189,7 +196,7 @@ def batch(ctx, format, input_file, output_path, include_timestamp):
 
 
 if __name__ == '__main__':
-    cli(obj={{}})
+    cli(obj={})
 '''
 
         (project_path / "src" / "cli.py").write_text(cli_content)
@@ -226,7 +233,7 @@ class APIClient:
         if 'bearer_token' in auth_methods:
             token = self.config.get('api_token', '')
             if token:
-                self.session.headers.update({{'Authorization': f'Bearer {{token}}'}}})
+                self.session.headers.update({{'Authorization': f'Bearer {{token}}'}})
 
     def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
         """Execute GET request."""
@@ -447,6 +454,7 @@ verbose=false
 
     def _generate_init_files(self, project_path: Path):
         """Generate __init__.py files."""
+        (project_path / "src" / "commands").mkdir(exist_ok=True)
         (project_path / "src" / "__init__.py").write_text("")
         (project_path / "src" / "commands" / "__init__.py").write_text("")
 

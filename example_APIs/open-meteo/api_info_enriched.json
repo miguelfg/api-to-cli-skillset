@@ -1,0 +1,236 @@
+{
+  "url": "https://open-meteo.com/en/docs",
+  "api_type": "html_docs",
+  "title": "Open-Meteo API",
+  "version": "1.0.0",
+  "base_url": "https://api.open-meteo.com",
+  "description": "Generated from Open-Meteo documentation pages",
+  "endpoint_count": 20,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/v1/air-quality",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/archive",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/bom",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/climate",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/cma",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/dmi",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/dwd-icon",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/ecmwf",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/elevation",
+      "description": "Open-Meteo endpoint discovered from docs (seen 5 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/ensemble",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/flood",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/forecast",
+      "description": "Open-Meteo endpoint discovered from docs (seen 70 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/gem",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/gfs",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/jma",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knmi",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/marine",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/meteofrance",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/metno",
+      "description": "Open-Meteo endpoint discovered from docs (seen 2 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/search",
+      "description": "Open-Meteo endpoint discovered from docs (seen 1 times)",
+      "tag": "Weather",
+      "parameters": {
+        "path": [],
+        "query": [],
+        "body": []
+      }
+    }
+  ],
+  "extraction_notes": [
+    "Primary extractor returned 0 endpoints on JS-heavy docs",
+    "Fallback extraction used docs-page crawling and endpoint URL pattern matching",
+    "Methods defaulted to GET for discovered /v1 endpoints"
+  ]
+}

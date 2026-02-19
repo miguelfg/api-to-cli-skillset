@@ -1,0 +1,21 @@
+{
+  "url": "https://open-meteo.com/en/docs",
+  "api_type": "html_docs",
+  "content_length": 495251,
+  "content_preview": "<!doctype html>\n<html lang=\"en\">\n\t<head>\n\t\t<meta charset=\"utf-8\" />\n\t\t<link rel=\"icon\" href=\"/favicon.ico\" />\n\t\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n\t\t\n\t\t<link href=\"/_app/immutable/assets/0.BF2sHqJB.css\" rel=\"stylesheet\">\n\t\t<link href=\"/_app/immutable/assets/index.CV-KWLNP.css\" rel=\"stylesheet\">\n\t\t<link href=\"/_app/immutable/assets/settings.Cia_FdUM.css\" rel=\"stylesheet\">\n\t\t<link rel=\"modulepreload\" href=\"/_app/immutable/entry/start.Cx-LAn5n.js\">\n\t\t<link rel=\"m",
+  "cache": {
+    "saved": true,
+    "path": "/tmp/api-to-doc-cache/open-meteo_com__en_docs_2537351e.html",
+    "cache_dir": "/tmp/api-to-doc-cache"
+  },
+  "is_spec": false,
+  "endpoints": [],
+  "base_url": "https://open-meteo.com",
+  "endpoint_count": 0,
+  "extraction_notes": [
+    "Parameters extracted from documentation patterns",
+    "Request/response examples sourced from code blocks",
+    "HTML page saved to cache for link extraction",
+    "Consider enhancing with browser-based extraction if incomplete"
+  ]
+}
