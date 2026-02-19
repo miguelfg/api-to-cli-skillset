@@ -56,6 +56,7 @@ The skill will:
    - `src/batch_processor.py` — Batch request processor
    - `src/logger.py` — Logging configuration
    - `Makefile` — Development commands and endpoint examples
+   - `README.md` — Project documentation (from `assets/README_template.md`)
    - `.env.example` — Configuration template
    - `requirements.txt` — Dependencies
    - `logs/` — Log directory (if file logging enabled)

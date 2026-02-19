@@ -27,7 +27,7 @@ my_api_client/
 ├── .env                       # Configuration (copy from .env.example)
 ├── .env.example              # Configuration template
 ├── requirements.txt           # Python dependencies
-└── README.md                 # Project documentation (optional)
+└── README.md                 # Project documentation (from assets/README_template.md)
 ```
 
 ---
@@ -186,6 +186,29 @@ openpyxl>=3.7.0
 ```bash
 pip install -r requirements.txt
 ```
+
+---
+
+### `README.md` — Project Documentation
+
+**Purpose:** Quick-start guide for users of the generated CLI project.
+
+Generated from `assets/README_template.md` in the `prd-to-cli` skill, with placeholders
+replaced by values extracted from the PRD:
+
+| Placeholder | Replaced with |
+|-------------|--------------|
+| `[PROJECT_NAME]` | Project name (e.g., `tronscan-cli`) |
+| `[API_NAME]` | API name from PRD title |
+| `[CLI_NAME]` | CLI command name (e.g., `tronscan`) |
+| `[API_PREFIX]` | Env var prefix (e.g., `TRONSCAN`) |
+| `[BASE_URL]` | Base URL from PRD |
+| `[AUTH_HEADER]` | Auth header name (e.g., `TRON-PRO-API-KEY`) |
+| `[RESOURCE_LIST]` | Bullet list of resources and their commands |
+| `[RESOURCE_COMMAND_EXAMPLES]` | Example CLI commands per resource |
+| `[BATCH_EXAMPLES]` | Sample batch `.txt` entries |
+| `[COMMAND_FILES]` | List of `src/commands/*.py` files |
+| `[PRD_PATH]` | Relative path to the source PRD.md |
 
 ---
 
