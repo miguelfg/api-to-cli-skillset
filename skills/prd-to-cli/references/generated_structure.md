@@ -193,22 +193,24 @@ pip install -r requirements.txt
 
 **Purpose:** Quick-start guide for users of the generated CLI project.
 
-Generated from `assets/README_template.md` in the `prd-to-cli` skill, with placeholders
-replaced by values extracted from the PRD:
+Generated from `assets/README_template.md` in the `prd-to-cli` skill. Each placeholder
+is filled by running a specific command or reading a specific source after project generation:
 
-| Placeholder | Replaced with |
-|-------------|--------------|
-| `[PROJECT_NAME]` | Project name (e.g., `tronscan-cli`) |
-| `[API_NAME]` | API name from PRD title |
-| `[CLI_NAME]` | CLI command name (e.g., `tronscan`) |
-| `[API_PREFIX]` | Env var prefix (e.g., `TRONSCAN`) |
-| `[BASE_URL]` | Base URL from PRD |
-| `[AUTH_HEADER]` | Auth header name (e.g., `TRON-PRO-API-KEY`) |
-| `[RESOURCE_LIST]` | Bullet list of resources and their commands |
-| `[RESOURCE_COMMAND_EXAMPLES]` | Example CLI commands per resource |
-| `[BATCH_EXAMPLES]` | Sample batch `.txt` entries |
-| `[COMMAND_FILES]` | List of `src/commands/*.py` files |
-| `[PRD_PATH]` | Relative path to the source PRD.md |
+| Placeholder | How to fill | Source |
+|-------------|-------------|--------|
+| `[PROJECT_NAME]` | User-provided project name | answered question |
+| `[DESCRIPTION]` | One-line summary | PRD Introduction > Overview |
+| `[BASE_URL]` | Base URL field | PRD `**Base URL:**` |
+| `[REQUIRED_ENV_VARS]` | Required-only vars (no defaults) | read `.env.example` |
+| `[CLI_HELP_OUTPUT]` | Root help text | `uv run [CLI_NAME] --help` |
+| `[RESOURCE_HELP_SECTIONS]` | Per-resource help blocks | `uv run [CLI_NAME] [resource] --help` for each group |
+| `[BATCH_DOCSTRING_EXAMPLES]` | Supported command examples | module docstring of `src/batch_processor.py` |
+| `[TIMESTAMP_FORMAT]` | Timestamp pattern | Config.TIMESTAMP_FORMAT (e.g. `YYYYMMDD_HHMMSS`) |
+| `[MAKE_HELP_OUTPUT]` | All Makefile targets | `make help` output |
+| `[TREE_OUTPUT]` | Directory listing | `tree -a -I '__pycache__\|*.pyc\|uv.lock\|.env\|output\|logs\|.pytest_cache' --dirsfirst` |
+| `[AUTH_HEADER]` | Auth header name | PRD Authentication section |
+| `[PRD_FILENAME]` | PRD filename | basename of source PRD path |
+| `[PRD_PATH]` | Relative path to PRD | relative path from project root to source PRD.md |
 
 ---
 

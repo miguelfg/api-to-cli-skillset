@@ -1,99 +1,91 @@
 # [PROJECT_NAME]
 
-Python CLI client for **[API_NAME]**.
+<!-- fill: PRD title + one-line description from PRD Introduction > Overview -->
+[DESCRIPTION]
+
+**Base URL:** `[BASE_URL]`
+<!-- fill: PRD **Base URL:** field -->
+
+---
 
 ## Installation
 
 ```bash
-# Install dependencies
 uv sync
-
-# Or with pip
-pip install -r requirements.txt
 ```
 
-## Configuration
+> Or with pip: `pip install -r requirements.txt`
 
-Copy `.env.example` to `.env` and fill in your credentials:
+## Configuration
 
 ```bash
 cp .env.example .env
 ```
 
-Required variables:
+<!-- fill: read .env.example, list only the required variables (no defaults) -->
+Required environment variables:
 
 ```env
-[API_PREFIX]_API_KEY=your-api-key-here
+[REQUIRED_ENV_VARS]
 ```
 
-## Usage
+Full options: see `.env.example`.
 
-```bash
-# Show all commands
-[CLI_NAME] --help
+---
 
-# Resource commands
-[RESOURCE_COMMAND_EXAMPLES]
+## Help
 
-# Enable debug output
-[CLI_NAME] --verbose [RESOURCE] [COMMAND]
+<!-- fill: run `uv run [CLI_NAME] --help` and paste output verbatim -->
+```
+[CLI_HELP_OUTPUT]
 ```
 
-## Resources
+### Resource commands
 
-[RESOURCE_LIST]
+<!-- fill: for each resource group, run `uv run [CLI_NAME] [resource] --help` and paste output -->
+[RESOURCE_HELP_SECTIONS]
+
+---
 
 ## Batch Processing
 
-Place a `.txt` file in `data/` with one JSON object per line:
+<!-- fill: copy the module docstring from src/batch_processor.py (the supported commands table) -->
+Input file format — `data/batch.txt`, one JSON object per line:
 
 ```jsonl
-[BATCH_EXAMPLES]
+[BATCH_DOCSTRING_EXAMPLES]
 ```
-
-Run the batch:
 
 ```bash
 [CLI_NAME] batch --input-file data/batch.txt --output-dir output/
 ```
 
-Results are saved to `output/batch_results_YYYYMMDD_HHMMSS.xlsx`.
+Output: `output/batch_results_[TIMESTAMP_FORMAT].xlsx` — sheets: Summary, Results, Errors.
+
+---
 
 ## Development
 
-```bash
-make install-dev   # Install with dev dependencies
-make lint          # Run linters
-make format        # Format code
-make test          # Run tests
-make help          # Show all Makefile targets
+<!-- fill: run `make help` (or `uv run make help`) in the project root and paste output -->
 ```
+[MAKE_HELP_OUTPUT]
+```
+
+---
 
 ## Project Structure
 
+<!-- fill: run `tree -a -I '__pycache__|*.pyc|uv.lock|.env|output|logs|.pytest_cache' --dirsfirst` -->
 ```
-[PROJECT_NAME]/
-├── src/
-│   ├── cli.py                  # CLI entry point
-│   ├── client.py               # HTTP client
-│   ├── config.py               # Configuration
-│   ├── logger.py               # Logging
-│   ├── output.py               # Output formatting (XLSX)
-│   ├── batch_processor.py      # Batch runner
-│   └── commands/
-│       [COMMAND_FILES]
-├── data/                       # Batch input files
-├── output/                     # Generated output files
-├── tests/
-├── Makefile
-├── pyproject.toml
-└── .env.example
+[TREE_OUTPUT]
 ```
+
+---
 
 ## API Reference
 
-**Base URL:** `[BASE_URL]`
-
 **Authentication:** `[AUTH_HEADER]` header
+<!-- fill: auth header name from PRD Authentication section -->
 
-Full endpoint reference: see `[PRD_PATH]`
+Full endpoint reference: [`[PRD_FILENAME]`]([PRD_PATH])
+<!-- fill: relative path from project root to the source PRD.md -->
