@@ -97,7 +97,11 @@ class PRDParser:
 
         # Preferred format in generated PRDs:
         # - Resources: `airquality, archive, forecast`
-        resources_line = re.search(r'Resources:\s*`([^`]+)`', self.content)
+        resources_line = re.search(
+            r'(?:\*\*Resources:\*\*|Resources:)\s*`([^`]+)`',
+            self.content,
+            re.IGNORECASE,
+        )
         if resources_line:
             raw_resources = resources_line.group(1)
             for item in [part.strip().lower() for part in raw_resources.split(",")]:
@@ -863,7 +867,13 @@ def create(ctx, data):
             run_step("black", ["black", *targets])
 
         # Minimal syntax lint fallback.
-        run_step("py_compile", ["python", "-m", "py_compile", *[str(p) for p in project_path.rglob("*.py")]])
+        py_files = []
+        for rel in ("src", "tests"):
+            base = project_path / rel
+            if base.exists():
+                py_files.extend(str(p.relative_to(project_path)) for p in base.rglob("*.py"))
+        if py_files:
+            run_step("py_compile", ["python", "-m", "py_compile", *py_files])
 
 
 def load_prd(prd_path: str) -> str:

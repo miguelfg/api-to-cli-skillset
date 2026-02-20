@@ -81,3 +81,9 @@ why example_CLIs/restcountries-cli wasn't created without the use of 'uv' and wi
 Act as a Python senior developer and analyse python files in the example_CLIs/ folder to identify improvements and bugs, and without fixing them, add such findings to the PRD.md template as a checklist of things to consider when implementing the CLI client. 
 
 See `example_CLIs/` folder if there are more common files that could be templated for the generated projects, like a config.py file, or a utils.py file, or a logging setup file, test files, etc. Add templates for those files in the prd-to-cli skill assets, and make sure to include them in the generated project for the CLI.
+
+in the README.md file:
+ - examples of running skills should be for Claude Code and COdex, not for Python scripts
+ - add a section about the expected output artifacts for each step, with naming conventions and examples
+ - in running the CLIs specify to cd first into the generated project directory before running the CLI commands with `uv`.  
+ - add a first step to copy-paste these skills into your local project under `skills/` before running them
