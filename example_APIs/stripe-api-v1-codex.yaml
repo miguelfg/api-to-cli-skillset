@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: API
+  version: 1.0.0
+servers:
+- url: https://api.stripe.com
+paths:
+  /v1/charges:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/charges/ch_3LmzzQ2eZvKYlo2C0XjzUzJV:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+x-quality-gates:
+  enabled: true
+  base_url: https://api.stripe.com
+  total_input_endpoints: 2
+  get_probe_attempted: 2
+  get_probe_passed: 2
+  get_probe_failed: 0
+  filtered_out: 0
+  details:
+  - method: GET
+    path: /v1/charges
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/charges/ch_3LmzzQ2eZvKYlo2C0XjzUzJV
+    status: '401'
+    exists: true
+  pass: true
