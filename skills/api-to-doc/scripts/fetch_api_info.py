@@ -11,6 +11,7 @@ import subprocess
 import sys
 import hashlib
 import argparse
+from collections import Counter, deque
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, parse_qsl
 from html.parser import HTMLParser
@@ -19,6 +20,10 @@ from typing import Optional, Dict, List, Any
 from datetime import datetime
 
 from html_processing import html_to_markdown, truncate_lines
+try:
+    import yaml
+except Exception:  # pragma: no cover - optional dependency guard
+    yaml = None
 
 def get_tmp_cache_dir() -> Path:
     """Get or create the /tmp cache directory for API documentation."""
@@ -81,6 +86,184 @@ def fetch_url(url: str, use_cache: bool = True) -> tuple:
     except FileNotFoundError:
         print("⚠️  curl not found.", file=sys.stderr)
         return "", None
+
+
+def extract_links_from_html(content: str, base_url: str) -> set[str]:
+    """Extract and normalize links from HTML."""
+    links = set()
+    href_pattern = r'href=["\']((?:https?://|/)[^\s"\'<>]+)'
+    for match in re.finditer(href_pattern, content, re.IGNORECASE):
+        href = match.group(1)
+        if href.startswith("/"):
+            parsed = urlparse(base_url)
+            href = f"{parsed.scheme}://{parsed.netloc}{href}"
+        links.add(href.split("#")[0])
+    return links
+
+
+def get_root_domain(hostname: str) -> str:
+    """Return a coarse root domain (last two labels)."""
+    if not hostname:
+        return ""
+    parts = hostname.split(".")
+    if len(parts) < 2:
+        return hostname
+    return ".".join(parts[-2:])
+
+
+def filter_api_doc_links(links: set[str], start_url: str, max_depth: int = 6) -> list[str]:
+    """Keep same-domain API-doc-like links for crawling."""
+    parsed_start = urlparse(start_url)
+    base_domain = parsed_start.netloc
+    base_root_domain = get_root_domain(base_domain)
+    start_path = parsed_start.path
+    start_root = "/" + "/".join([p for p in start_path.split("/") if p][:2]) if start_path else ""
+
+    filtered = []
+    for url in links:
+        parsed = urlparse(url)
+        if get_root_domain(parsed.netloc) != base_root_domain:
+            continue
+        if parsed.query and "lang=" in parsed.query.lower():
+            continue
+        path_lower = parsed.path.lower()
+        if any(skip in path_lower for skip in [
+            "/search", "/blog", "/pricing", "/contact", "/about", "/support",
+            "/login", "/signup", "/dashboard", "/changelog"
+        ]):
+            continue
+        # Prefer links under the same docs subtree.
+        if start_root and not parsed.path.startswith(start_root):
+            # Keep links near API docs only (avoid unrelated docs sections).
+            if "/api/" not in path_lower and not path_lower.endswith("/api"):
+                continue
+        if parsed.path.count("/") > max_depth:
+            continue
+        filtered.append(url)
+    return sorted(set(filtered))
+
+
+def discover_openapi_links(content: str, base_url: str) -> list[str]:
+    """Find likely OpenAPI/Swagger spec URLs from HTML."""
+    candidates = set()
+
+    href_pattern = r'href=["\']([^"\']+)["\']'
+    for raw_href in re.findall(href_pattern, content, re.IGNORECASE):
+        href = urljoin(base_url, raw_href)
+        href_lower = href.lower()
+        if any(token in href_lower for token in ["openapi", "swagger", "spec"]) and any(
+            href_lower.endswith(ext) for ext in [".json", ".yaml", ".yml"]
+        ):
+            candidates.add(href)
+
+    # Conventional spec paths on the same host.
+    parsed = urlparse(base_url)
+    root = f"{parsed.scheme}://{parsed.netloc}"
+    for path in [
+        "/openapi.json",
+        "/openapi.yaml",
+        "/openapi.yml",
+        "/swagger.json",
+        "/v1/openapi.json",
+        "/api/openapi.json",
+    ]:
+        candidates.add(root + path)
+
+    return sorted(candidates)
+
+
+def fetch_first_openapi_spec(content: str, base_url: str) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Try discovered candidate links and return first parseable OpenAPI/Swagger spec."""
+    for candidate in discover_openapi_links(content, base_url):
+        spec_text, _ = fetch_url(candidate, use_cache=False)
+        if not spec_text:
+            continue
+
+        parsed_spec = None
+        try:
+            parsed_spec = json.loads(spec_text)
+        except Exception:
+            if yaml is not None:
+                try:
+                    parsed_spec = yaml.safe_load(spec_text)
+                except Exception:
+                    parsed_spec = None
+
+        if isinstance(parsed_spec, dict) and any(key in parsed_spec for key in ["openapi", "swagger", "paths"]):
+            return parsed_spec, candidate
+
+    return None, None
+
+
+def discover_markdown_links(content: str, base_url: str) -> list[str]:
+    """Find markdown documentation links in the HTML page."""
+    candidates = []
+    for raw_href in re.findall(r'href=["\']([^"\']+)["\']', content, re.IGNORECASE):
+        href = urljoin(base_url, raw_href)
+        href_lower = href.lower()
+        if href_lower.endswith(".md") or "markdown" in href_lower or "view-as-markdown" in href_lower:
+            candidates.append(href)
+    return sorted(set(candidates))
+
+
+def fetch_markdown_doc(content: str, base_url: str) -> tuple[Optional[str], Optional[str]]:
+    """Fetch preferred markdown doc content when available."""
+    for md_link in discover_markdown_links(content, base_url):
+        md_text, _ = fetch_url(md_link, use_cache=False)
+        if md_text and len(md_text.strip()) > 200:
+            return md_text, md_link
+    return None, None
+
+
+def crawl_and_extract_related_endpoints(
+    start_url: str,
+    use_cache: bool = True,
+    max_pages: int = 80,
+    max_depth: int = 6,
+) -> tuple[list[dict], str]:
+    """
+    Crawl related docs pages and aggregate extracted endpoints.
+    Returns (endpoints, detected_base_url).
+    """
+    visited = set()
+    queue = deque([start_url.split("#")[0]])
+    all_endpoints = []
+    base_url_candidates = []
+    pages = 0
+
+    while queue and pages < max_pages:
+        url = queue.popleft()
+        if url in visited:
+            continue
+        visited.add(url)
+        pages += 1
+
+        content, _ = fetch_url(url, use_cache=use_cache)
+        if not content:
+            continue
+
+        page_endpoints = extract_endpoints_from_html(content)
+        all_endpoints.extend(page_endpoints)
+        base_url_candidates.append(extract_base_url(url, content))
+
+        links = extract_links_from_html(content, url)
+        crawlable = filter_api_doc_links(links, start_url, max_depth=max_depth)
+        # Keep queue growth bounded but allow broad exploration.
+        for link in crawlable[:40]:
+            if link not in visited:
+                queue.append(link)
+
+    dedup = {}
+    for ep in all_endpoints:
+        key = (ep.get("method", "GET"), ep.get("path", "/"))
+        dedup[key] = ep
+
+    final_base_url = ""
+    if base_url_candidates:
+        counts = Counter(base_url_candidates)
+        final_base_url = counts.most_common(1)[0][0]
+
+    return list(dedup.values()), final_base_url
 
 def detect_api_type(content: str, url: str) -> str:
     """Detect if content is OpenAPI, Swagger, or HTML documentation."""
@@ -149,10 +332,52 @@ def extract_endpoints_from_html(content: str) -> list:
     """Extract endpoints from HTML documentation with improved patterns."""
     endpoints = []
 
+    def normalize_endpoint_path(raw_path: str) -> str:
+        """Normalize example-instance paths into parameterized paths."""
+        path = raw_path.split("?")[0].strip()
+        if not path.startswith("/"):
+            path = "/" + path
+
+        normalized_parts = []
+        for part in path.split("/"):
+            if not part:
+                continue
+            token = part.strip()
+            lowered = token.lower()
+
+            # Keep version/static tokens untouched.
+            if re.match(r"^v\d+$", lowered):
+                normalized_parts.append(token)
+                continue
+
+            # Convert Stripe-like object IDs (acct_..., ch_..., *_test_...) to path params.
+            # Only rewrite tokens containing digits to avoid static snake_case segments.
+            has_digit = any(ch.isdigit() for ch in token)
+            if has_digit:
+                m_test = re.match(r"^([a-z][a-z0-9]*)_test_[A-Za-z0-9]+$", token)
+                if m_test:
+                    normalized_parts.append(f"{{{m_test.group(1)}_id}}")
+                    continue
+
+                m_prefixed = re.match(r"^([a-z][a-z0-9]*)_[A-Za-z0-9]+$", token)
+                if m_prefixed:
+                    normalized_parts.append(f"{{{m_prefixed.group(1)}_id}}")
+                    continue
+
+                # Generic long alnum IDs.
+                if re.match(r"^[A-Za-z0-9]{12,}$", token):
+                    normalized_parts.append("{id}")
+                    continue
+
+            normalized_parts.append(token)
+
+        return "/" + "/".join(normalized_parts)
+
     # Pattern 1: Code blocks with HTTP methods (most reliable)
     http_pattern = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(/[^\s<\n]+)'
     matches = re.findall(http_pattern, content)
     for method, path in matches:
+        path = normalize_endpoint_path(path)
         endpoints.append({
             "method": method,
             "path": path,
@@ -166,6 +391,7 @@ def extract_endpoints_from_html(content: str) -> list:
     endpoint_pattern = r'<(?:h[2-4]|li|td)>.*?(GET|POST|PUT|DELETE|PATCH)\s+(/[^\s<]+).*?</(?:h[2-4]|li|td)>'
     matches = re.findall(endpoint_pattern, content, re.IGNORECASE | re.DOTALL)
     for method, path in matches:
+        path = normalize_endpoint_path(path)
         endpoints.append({
             "method": method.upper(),
             "path": path,
@@ -179,6 +405,7 @@ def extract_endpoints_from_html(content: str) -> list:
     # Example: "The API endpoint /v1/forecast accepts ..."
     endpoint_only_pattern = r'api\s+endpoint[^<\n]*?(/v\d+/[a-zA-Z0-9_/\-]+)'
     for path in re.findall(endpoint_only_pattern, content, re.IGNORECASE):
+        path = normalize_endpoint_path(path)
         endpoints.append({
             "method": "GET",
             "path": path,
@@ -191,6 +418,7 @@ def extract_endpoints_from_html(content: str) -> list:
     # Pattern 3b: Endpoint wrapped in markup (e.g., "<mark>/v1/flood</mark>").
     endpoint_mark_pattern = r'api\s+endpoint.*?<mark>\s*(/v\d+/[a-zA-Z0-9_/\-]+)\s*</mark>'
     for path in re.findall(endpoint_mark_pattern, content, re.IGNORECASE | re.DOTALL):
+        path = normalize_endpoint_path(path)
         endpoints.append({
             "method": "GET",
             "path": path,
@@ -203,6 +431,7 @@ def extract_endpoints_from_html(content: str) -> list:
     # Pattern 4: Absolute API URLs in forms/links.
     absolute_api_pattern = r'https?://api[.\-][^"\'<>\s]+(/v\d+/[a-zA-Z0-9_/\-]+)'
     for path in re.findall(absolute_api_pattern, content, re.IGNORECASE):
+        path = normalize_endpoint_path(path)
         endpoints.append({
             "method": "GET",
             "path": path,
@@ -468,6 +697,30 @@ def main():
         markdown_cache_path = cache_path.with_suffix(".md")
         markdown_cache_path.write_text(normalized_markdown, encoding="utf-8")
 
+    # Priority 1: discover and use a linked machine-readable OpenAPI/Swagger spec if available.
+    linked_spec, linked_spec_url = fetch_first_openapi_spec(content, url)
+    if linked_spec is not None:
+        result = {
+            "url": url,
+            "api_type": "openapi",
+            "content_length": len(content),
+            "content_preview": content[:500],
+            "is_spec": True,
+            "spec": linked_spec,
+            "spec_source": linked_spec_url,
+            "cache": {
+                "saved": cache_path is not None,
+                "path": str(cache_path) if cache_path else None,
+                "markdown_path": str(markdown_cache_path) if markdown_cache_path else None,
+                "cache_dir": str(get_tmp_cache_dir())
+            },
+            "extraction_notes": [
+                "Linked OpenAPI/Swagger schema discovered and prioritized over doc scraping"
+            ],
+        }
+        print(json.dumps(result, indent=2))
+        return
+
     api_type = detect_api_type(content, url)
 
     result = {
@@ -492,9 +745,30 @@ def main():
 
     elif api_type == "html_docs":
         result["is_spec"] = False
-        extraction_source = normalized_markdown if args.prefer_md_extraction else content
+        # Priority 2: prefer markdown docs when available, otherwise HTML.
+        markdown_doc, markdown_source_url = fetch_markdown_doc(content, url)
+        if markdown_doc:
+            extraction_source = markdown_doc
+            result["preferred_doc_source"] = "markdown"
+            result["preferred_doc_url"] = markdown_source_url
+        else:
+            extraction_source = normalized_markdown if args.prefer_md_extraction else content
+            result["preferred_doc_source"] = "normalized_markdown" if args.prefer_md_extraction else "html"
         endpoints = extract_endpoints_from_html(extraction_source)
         base_url = extract_base_url(url, extraction_source)
+
+        # Auto-fallback: for docs sites with sparse top-level endpoints, crawl related pages.
+        if len(endpoints) < 5:
+            crawled_endpoints, crawled_base_url = crawl_and_extract_related_endpoints(
+                url,
+                use_cache=use_cache,
+                max_pages=25,
+                max_depth=6,
+            )
+            if len(crawled_endpoints) > len(endpoints):
+                endpoints = crawled_endpoints
+            if crawled_base_url:
+                base_url = crawled_base_url
 
         # Strict quality gate: no endpoint extraction means retrieval was not usable.
         if not endpoints:
@@ -514,10 +788,12 @@ def main():
         result["base_url"] = base_url
         result["endpoint_count"] = len(endpoints)
         result["extraction_notes"] = [
+            "Source preference order: linked OpenAPI schema > markdown docs > HTML pages",
             "Parameters extracted from documentation patterns",
             "Request/response examples sourced from code blocks",
             "HTML page saved to cache for link extraction",
             "Optional HTML-to-Markdown preprocessing available for long pages",
+            "Automatic multi-page crawl used for sparse top-level docs",
             "Fail-fast enabled when endpoint extraction is empty"
         ]
     else:

@@ -61,13 +61,16 @@ The skill attempts to:
 
 1. **Fetch the URL** using cURL (handles redirects, follows links)
 2. **Detect API type:**
-   - If it's already an OpenAPI/Swagger JSON/YAML → Extract directly
-   - If it's HTML documentation → Parse for HTTP endpoints
+   - If linked OpenAPI/Swagger JSON/YAML is discoverable → Extract directly (highest priority)
+   - Else if markdown API docs are available → Parse markdown source (preferred over HTML)
+   - Else if it's HTML documentation → Parse for HTTP endpoints
    - If unclear → Fail (do not fabricate endpoints)
 3. **Extract endpoints** using regex patterns for common documentation formats
 4. **Identify base URL** from content or request URL
 
-### 3. Fail-Fast Mode (If Needed)
+### 3. Multi-Page Extraction and Fail-Fast Mode
+
+For large docs portals, the skill automatically crawls related API docs pages (same root domain and API docs subtree) when top-level extraction is sparse, then merges and deduplicates endpoints before generation.
 
 If auto-detection finds no real endpoints or retrieval is incomplete, the skill must fail with an explicit error and stop. Do not invent or manually fabricate endpoint definitions.
 
