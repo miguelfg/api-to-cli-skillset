@@ -14,6 +14,7 @@
 10. [Logging](#logging)
 11. [Best Click Practices](#best-click-practices)
 12. [Makefile & Project Management](#makefile--project-management)
+13. [Implementation Checklist](#implementation-checklist)
 
 ---
 
@@ -1244,6 +1245,28 @@ uv publish
 ✓ **Simple** — Single tool for install, run, build, publish
 ✓ **Python-native** — Works with standard Python projects
 ✓ **Batteries included** — Package management + project management
+
+---
+
+## Implementation Checklist
+
+Use this checklist during implementation and review. These items were derived from issues observed in existing example CLIs.
+
+- [ ] Do not shadow imported class/function names (for example, avoid redefining `Config` in a module that already imports `Config`).
+- [ ] Ensure all advertised output formats are fully implemented (`json`, `csv`, `xlsx`) for both single commands and batch mode.
+- [ ] Ensure batch request execution respects per-row HTTP method (`GET`, `POST`, `PUT/PATCH`, `DELETE`) instead of forcing one method.
+- [ ] Avoid broad `except Exception`; catch expected exception types and return actionable user-facing errors.
+- [ ] Use structured logging (and `click.echo` for CLI output) instead of raw `print()` in runtime paths.
+- [ ] Parse `.env` defensively (skip malformed lines, comments, blank values) to avoid `split`/parse crashes.
+- [ ] Define file I/O explicitly with encoding/newline policy (for example, UTF-8 and CSV-safe writes).
+- [ ] Handle non-JSON/empty API responses safely before calling `.json()`.
+- [ ] Keep authentication header names and auth schemes configurable per API (`X-API-Key`, `Authorization`, provider-specific headers).
+- [ ] Validate and normalize base URL and endpoint joining to prevent malformed URLs.
+- [ ] Avoid hidden placeholders like “format not yet implemented” in generated command handlers.
+- [ ] Add coverage for error paths: auth failures, timeouts, retries exhausted, malformed batch rows, and invalid output paths.
+- [ ] Add integration/smoke tests that verify generated files and CLI behavior end-to-end (not only `--help`/dry-run).
+- [ ] Specify deterministic defaults for retry/backoff/timeouts and expose overrides via config/flags.
+- [ ] Ensure generated project metadata is complete (`pyproject.toml`, console script entry point, dependencies).
 
 ---
 

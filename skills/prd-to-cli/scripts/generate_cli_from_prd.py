@@ -128,10 +128,23 @@ class CLIProjectGenerator:
         self._generate_env_file(project_path)
         self._generate_init_files(project_path)
         self._generate_requirements(project_path)
+        self._generate_pyproject(project_path)
         self._generate_resource_commands(project_path)
+        self._generate_shared_templates(project_path)
 
         print(f"✅ Project generated: {project_path}")
         return project_path
+
+    def _asset_path(self, filename: str) -> Path:
+        """Resolve an asset template path."""
+        return Path(__file__).resolve().parent.parent / "assets" / filename
+
+    def _render_asset(self, template_name: str, replacements: Dict[str, str]) -> str:
+        """Render an asset template with string replacements."""
+        content = self._asset_path(template_name).read_text()
+        for key, value in replacements.items():
+            content = content.replace(f"{{{key}}}", value)
+        return content
 
     def _generate_cli_main(self, project_path: Path):
         """Generate main CLI entry point."""
@@ -467,6 +480,64 @@ pandas>=1.3.0
 openpyxl>=3.7.0
 """
         (project_path / "requirements.txt").write_text(requirements)
+
+    def _generate_pyproject(self, project_path: Path):
+        """Generate pyproject.toml from asset template."""
+        template_path = self._asset_path("pyproject_template.toml")
+        template = template_path.read_text()
+
+        description = self.parsed_prd["api_info"].get(
+            "title",
+            f"{self.project_name.replace('_', ' ').title()} API CLI",
+        )
+        safe_project_name = self.project_name.replace("_", "-")
+
+        dependencies = [
+            '"click>=8.0.0"',
+            '"requests>=2.28.0"',
+            '"python-dotenv>=0.19.0"',
+            '"pandas>=1.3.0"',
+            '"openpyxl>=3.7.0"',
+        ]
+        dependencies_block = ",\n    ".join(dependencies)
+
+        pyproject = (
+            template
+            .replace("{PROJECT_NAME}", safe_project_name)
+            .replace("{DESCRIPTION}", description)
+            .replace("{DEPENDENCIES}", dependencies_block)
+            .replace("{CONSOLE_SCRIPT}", safe_project_name)
+        )
+
+        (project_path / "pyproject.toml").write_text(pyproject)
+
+    def _generate_shared_templates(self, project_path: Path):
+        """Generate reusable template-based project files."""
+        safe_project_name = self.project_name.replace("_", "-")
+        replacements = {
+            "PROJECT_NAME": self.project_name,
+            "PROJECT_NAME_DASH": safe_project_name,
+            "API_TITLE": self.parsed_prd["api_info"].get("title", "API"),
+            "BASE_URL": self.parsed_prd["api_info"].get("base_url", "https://api.example.com"),
+            "TIMESTAMP_FORMAT": "%Y%m%d_%H%M%S",
+            "ENV_PREFIX": re.sub(r"[^A-Z0-9]", "_", self.project_name.upper()),
+        }
+
+        files_to_render = [
+            ("config_template.py", project_path / "src" / "config.py"),
+            ("utils_template.py", project_path / "src" / "utils.py"),
+            ("logger_template.py", project_path / "src" / "logger.py"),
+            ("output_template.py", project_path / "src" / "output.py"),
+            ("test_cli_template.py", project_path / "tests" / "test_cli.py"),
+            ("makefile_template.mk", project_path / "Makefile"),
+        ]
+
+        (project_path / "tests").mkdir(exist_ok=True)
+        (project_path / "tests" / "__init__.py").write_text("")
+
+        for template_name, dest in files_to_render:
+            rendered = self._render_asset(template_name, replacements)
+            dest.write_text(rendered)
 
     def _generate_resource_commands(self, project_path: Path):
         """Generate Click command files for each resource."""

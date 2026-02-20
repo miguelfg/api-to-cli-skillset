@@ -6,17 +6,24 @@ When you run the skill, it generates a complete Python Click CLI project with th
 
 ```
 my_api_client/
+├── Makefile                   # Common development commands
 ├── src/
 │   ├── __init__.py
 │   ├── cli.py                 # Main CLI entry point
 │   ├── client.py              # HTTP client library
 │   ├── config.py              # Configuration management
 │   ├── batch_processor.py      # Batch request processor
+│   ├── logger.py              # Logging helpers
+│   ├── output.py              # Export/output helpers
+│   ├── utils.py               # Shared utility helpers
 │   └── commands/
 │       ├── __init__.py
 │       ├── pets_commands.py    # One file per API resource
 │       ├── orders_commands.py
 │       └── users_commands.py
+├── tests/
+│   ├── __init__.py
+│   └── test_cli.py            # CLI smoke tests
 ├── data/                      # Input batch files (user-provided)
 │   ├── pets-batch.csv
 │   ├── orders-batch.txt
@@ -26,6 +33,7 @@ my_api_client/
 │   └── results_20260215_143523.xlsx
 ├── .env                       # Configuration (copy from .env.example)
 ├── .env.example              # Configuration template
+├── pyproject.toml            # Project metadata (uv/pip installable)
 ├── requirements.txt           # Python dependencies
 └── README.md                 # Project documentation (from assets/README_template.md)
 ```
@@ -114,6 +122,17 @@ python -m src.cli batch \
 
 ---
 
+### `src/logger.py` — Logging Helpers
+**Purpose:** Provide a reusable logger setup for console/debug output.
+
+### `src/output.py` — Output Helpers
+**Purpose:** Shared helpers to export API payloads as JSON/CSV/XLSX.
+
+### `src/utils.py` — Utility Helpers
+**Purpose:** Common parsing helpers (for example, safe parsing of `.env` values).
+
+---
+
 ### `src/commands/{resource}_commands.py` — Resource Commands
 **One file per API resource** (e.g., `pets_commands.py`, `users_commands.py`)
 
@@ -185,6 +204,27 @@ openpyxl>=3.7.0
 **Installation:**
 ```bash
 pip install -r requirements.txt
+```
+
+---
+
+### `tests/test_cli.py` — Smoke Tests
+**Purpose:** Basic checks that root CLI and batch command help render successfully.
+
+---
+
+### `pyproject.toml` — Project Metadata
+**Purpose:** Define package metadata, dependencies, and CLI entry point.
+
+**Key Fields:**
+- `[project]` name, version, description, Python requirement
+- `dependencies` for runtime requirements
+- `[project.scripts]` entry point for CLI command
+
+**Usage:**
+```bash
+uv sync
+uv run <project-name> --help
 ```
 
 ---

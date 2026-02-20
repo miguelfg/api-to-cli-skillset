@@ -65,10 +65,14 @@ The skill will:
    - `src/client.py` — HTTP client wrapper (using selected library)
    - `src/config.py` — Configuration management
    - `src/batch_processor.py` — Batch request processor
-   - `src/logger.py` — Logging configuration
+   - `src/logger.py` — Logging configuration helpers
+   - `src/output.py` — Output export helpers (JSON/CSV/XLSX)
+   - `src/utils.py` — Shared parsing/util functions
    - `Makefile` — Development commands and endpoint examples
+   - `tests/test_cli.py` — Basic CLI smoke tests
    - `README.md` — Project documentation (from `assets/README_template.md`)
    - `.env.example` — Configuration template
+   - `pyproject.toml` — Project metadata and console script entry point
    - `requirements.txt` — Dependencies
    - `logs/` — Log directory (if file logging enabled)
    - `data/` and `output/` — Data directories
@@ -387,10 +391,14 @@ tronscan_cli/
 │   ├── client.py               # Uses selected HTTP library
 │   ├── config.py
 │   ├── logger.py               # Logging configuration
+│   ├── output.py               # Output helpers
+│   ├── utils.py                # Shared utilities
 │   ├── batch_processor.py
 │   └── commands/
 │       ├── accounts_commands.py
 │       └── transactions_commands.py
+├── tests/
+│   └── test_cli.py
 ├── logs/                        # Created if file logging enabled
 │   └── tronscan_cli_*.log
 ├── data/
@@ -466,6 +474,7 @@ petstore_client/
 ├── output/
 ├── .env
 ├── requirements.txt
+├── pyproject.toml
 ```
 
 **Usage:**
@@ -489,9 +498,17 @@ python -m src.cli batch --input-file data/pets.csv --format json --include-times
 - Creates Click command files for each resource
 - Sets up batch processing and configuration
 
-**References** — Configuration and specification guides for users of generated projects
+**Assets**:
+- `assets/README_template.md` — Generated project README base template
+- `assets/pyproject_template.toml` — `pyproject.toml` template included in generated projects
+- `assets/config_template.py` — `src/config.py` template
+- `assets/logger_template.py` — `src/logger.py` template
+- `assets/output_template.py` — `src/output.py` template
+- `assets/utils_template.py` — `src/utils.py` template
+- `assets/test_cli_template.py` — `tests/test_cli.py` template
+- `assets/makefile_template.mk` — `Makefile` template
 
-No assets needed (all project files generated programmatically)
+**References** — Configuration and specification guides for users of generated projects
 
 ## Next Possible Steps
 
