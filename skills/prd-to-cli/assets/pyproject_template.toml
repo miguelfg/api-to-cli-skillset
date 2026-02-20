@@ -8,6 +8,11 @@ dependencies = [
     {DEPENDENCIES}
 ]
 
+[project.optional-dependencies]
+dev = [
+    {DEV_DEPENDENCIES}
+]
+
 [project.scripts]
 {CONSOLE_SCRIPT} = "src.cli:cli"
 

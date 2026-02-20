@@ -697,12 +697,20 @@ verbose=false
 
         dependencies = [f'"{dep}"' for dep in self.dependencies]
         dependencies_block = ",\n    ".join(dependencies)
+        dev_dependencies = [
+            '"pytest>=8.0.0"',
+            '"ruff>=0.6.0"',
+            '"black>=24.0.0"',
+            '"isort>=5.13.0"',
+        ]
+        dev_dependencies_block = ",\n    ".join(dev_dependencies)
 
         pyproject = (
             template
             .replace("{PROJECT_NAME}", safe_project_name)
             .replace("{DESCRIPTION}", description)
             .replace("{DEPENDENCIES}", dependencies_block)
+            .replace("{DEV_DEPENDENCIES}", dev_dependencies_block)
             .replace("{CONSOLE_SCRIPT}", safe_project_name)
         )
 
