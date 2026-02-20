@@ -148,10 +148,10 @@ The skill generates a complete project with CLI structure matching your PRD reso
 
 **Generated commands:**
 ```bash
-python -m src.cli pets list
-python -m src.cli orders create --data '...'
-python -m src.cli users get --username john
-python -m src.cli batch --input-file data/batch.csv
+uv run [cli-name] pets list
+uv run [cli-name] orders create --data '...'
+uv run [cli-name] users get --username john
+uv run [cli-name] batch --input-file data/batch.csv
 ```
 
 ### Step 4: Batch Processing
@@ -174,7 +174,7 @@ DELETE,/pet/1
 
 **Process batch:**
 ```bash
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file data/pets-batch.csv \
   --format json \
   --output-path ./output \
@@ -480,12 +480,12 @@ petstore_client/
 **Usage:**
 ```bash
 # Individual commands
-python -m src.cli pets list
-python -m src.cli orders create
-python -m src.cli users get
+uv run [cli-name] pets list
+uv run [cli-name] orders create
+uv run [cli-name] users get
 
 # Batch processing
-python -m src.cli batch --input-file data/pets.csv --format json --include-timestamp
+uv run [cli-name] batch --input-file data/pets.csv --format json --include-timestamp
 ```
 
 ---
@@ -516,7 +516,7 @@ Pipeline continuation from this final generation step:
 
 1. Smoke-test generated CLI commands:
 ```bash
-python -m src.cli --help
+uv run [cli-name] --help
 ```
 2. Run project tests (if present):
 ```bash

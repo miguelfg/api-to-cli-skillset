@@ -55,20 +55,20 @@ This document describes the Product Requirements for a Python CLI client for **[
 ### System Requirements
 
 - Python 3.8+
-- pip (Python package manager)
+- uv (recommended Python package/project manager)
 - curl (optional, for manual API testing)
 
 ### Installation Methods
 
-#### From Source
+#### Recommended (uv)
 
 ```bash
 git clone https://github.com/[org]/[api-client].git
 cd [api-client]
-pip install -e .
+uv sync
 ```
 
-#### From PyPI
+#### Alternative (pip)
 
 ```bash
 pip install [api-client]
@@ -77,8 +77,8 @@ pip install [api-client]
 ### Verify Installation
 
 ```bash
-[cli-name] --version
-[cli-name] --help
+uv run [cli-name] --version
+uv run [cli-name] --help
 ```
 
 ### Dependencies
@@ -879,18 +879,18 @@ grep ERROR ~/.cache/[cli-name]/[cli-name].log
 
 ```bash
 # ✓ Sensible defaults
-[cli-name] users list  # Defaults to limit=20, format=json
+uv run [cli-name] users list  # Defaults to limit=20, format=json
 
 # Explicit override
-[cli-name] users list --limit 50 --format csv
+uv run [cli-name] users list --limit 50 --format csv
 ```
 
 **Provide clear help text:**
 
 ```bash
-[cli-name] --help
-[cli-name] users --help
-[cli-name] users list --help
+uv run [cli-name] --help
+uv run [cli-name] users --help
+uv run [cli-name] users list --help
 ```
 
 ### Standard Options
@@ -1284,7 +1284,7 @@ This PRD provides a comprehensive guide for developing and using a Python CLI cl
 For additional help, run:
 
 ```bash
-[cli-name] --help
-[cli-name] <command> --help
-[cli-name] --version
+uv run [cli-name] --help
+uv run [cli-name] <command> --help
+uv run [cli-name] --version
 ```

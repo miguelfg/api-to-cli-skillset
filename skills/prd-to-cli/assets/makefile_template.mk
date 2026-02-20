@@ -29,6 +29,6 @@ test:
 	uv run pytest tests/ -v
 
 run:
-	uv run python -m src.cli --help
+	uv run $(PROJECT_NAME) --help
 
 .DEFAULT_GOAL := help

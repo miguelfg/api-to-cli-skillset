@@ -150,7 +150,7 @@ verbose=false                  # true or false
 ### Basic Batch Processing
 ```bash
 # Process CSV file, output as JSON
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file pets-batch.csv \
   --format json \
   --output-path ./results
@@ -161,7 +161,7 @@ python -m src.cli batch \
 ### With Timestamp
 ```bash
 # Include timestamp in output filename
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file orders-batch.csv \
   --format json \
   --output-path ./batch_results \
@@ -173,7 +173,7 @@ python -m src.cli batch \
 ### Different Format
 ```bash
 # Export to Excel
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file users-batch.txt \
   --format xlsx \
   --output-path ./exports
@@ -182,7 +182,7 @@ python -m src.cli batch \
 ### Verbose Output
 ```bash
 # Show detailed processing information
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file pets-batch.csv \
   --verbose
 
@@ -244,7 +244,7 @@ mv output/results_*.* archives/
 ### 5. Validate Input Before Processing
 ```bash
 # Check file exists and is readable
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file data/batch.csv \
   --format json \
   --verbose

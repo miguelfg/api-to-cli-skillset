@@ -53,9 +53,9 @@ my_api_client/
 
 **Usage:**
 ```bash
-python -m src.cli --help
-python -m src.cli pets --help
-python -m src.cli batch --help
+uv run [cli-name] --help
+uv run [cli-name] pets --help
+uv run [cli-name] batch --help
 ```
 
 ---
@@ -113,7 +113,7 @@ config.save()
 
 **Usage:**
 ```bash
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file data/pets-batch.csv \
   --format json \
   --output-path ./output \
@@ -261,19 +261,19 @@ Each API resource from the PRD becomes a Click command group with subcommands:
 ### Example: Pets Resource
 ```bash
 # List all pets
-python -m src.cli pets list
+uv run [cli-name] pets list
 
 # Get pet by ID
-python -m src.cli pets get --id 1
+uv run [cli-name] pets get --id 1
 
 # Create new pet
-python -m src.cli pets create --data '{"name": "Fluffy"}'
+uv run [cli-name] pets create --data '{"name": "Fluffy"}'
 
 # Update pet
-python -m src.cli pets update --id 1 --data '{"status": "sold"}'
+uv run [cli-name] pets update --id 1 --data '{"status": "sold"}'
 
 # Delete pet
-python -m src.cli pets delete --id 1
+uv run [cli-name] pets delete --id 1
 ```
 
 ### Generated File: `src/commands/pets_commands.py`
@@ -377,9 +377,9 @@ src/commands/users_commands.py
 
 **CLI Structure:**
 ```
-python -m src.cli pets list
-python -m src.cli orders create
-python -m src.cli users get
+uv run [cli-name] pets list
+uv run [cli-name] orders create
+uv run [cli-name] users get
 ```
 
 ---
@@ -410,10 +410,10 @@ cp .env.example .env
 # Edit .env with your API key and settings
 
 # 4. Test a command
-python -m src.cli pets list
+uv run [cli-name] pets list
 
 # 5. Process batch file
-python -m src.cli batch \
+uv run [cli-name] batch \
   --input-file data/pets-batch.csv \
   --format json \
   --output-path output

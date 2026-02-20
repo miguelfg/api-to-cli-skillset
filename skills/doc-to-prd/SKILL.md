@@ -129,9 +129,8 @@ Don't:
 
 ## PRD Template Structure
 
-The skill generates `{project_name}_PRD.md` files using a baseline template suitable for fast, consistent outputs. Use `references/PRD_template_basic.md` as the default generation template.
-
-For expanded outputs with deeper guidance, use `references/PRD_template.md`.
+The skill generates `{project_name}_PRD.md` files using a single canonical template:
+`references/PRD_template.md`.
 
 ### PRD Sections
 
@@ -459,8 +458,7 @@ After generating `{project_name}_PRD.md`, customize for your API:
 
 ## References
 
-- **[PRD_template_basic.md](references/PRD_template_basic.md)** - Baseline template used by `doc-to-prd`
-- **[PRD_template.md](references/PRD_template.md)** - Complete PRD template with all sections
+- **[PRD_template.md](references/PRD_template.md)** - Canonical template used by `doc-to-prd`
 - Related skills: `prd-to-cli`, `api-to-doc`
 
 ## Next Possible Steps
