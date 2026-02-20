@@ -1,0 +1,57 @@
+[project]
+name = "api-to-cli-skillset"
+version = "0.1.0"
+description = "Skillset to transform API docs/specs into Python CLI projects"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+authors = [
+  { name = "Miguel Fiandor", email = "miguel.fiandor.gutierrez@gmail.com" },
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.6.0",
+  "black>=24.0.0",
+  "isort>=5.13.0",
+  "pytest>=8.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [
+  ".git",
+  ".venv",
+  "__pycache__",
+  "example_APIs",
+  "example_PRDs",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+exclude = '''
+/(\
+    \.git
+  | \.venv
+  | __pycache__
+  | example_APIs
+  | example_PRDs
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+skip = ["example_APIs", "example_PRDs", ".venv", "__pycache__"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["example_CLIs", "tests"]
+python_files = ["test_*.py"]
