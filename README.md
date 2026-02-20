@@ -141,3 +141,7 @@ uv run pytest tests/ -v
 - API spec: `example_APIs/open-meteo/openapi.yaml`
 - PRDs: `example_PRDs/`
 - CLIs: `example_CLIs/`
+
+## Contact
+
+For collaboration or questions, contact me on LinkedIn: https://www.linkedin.com/in/mfiandor/
