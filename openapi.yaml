@@ -1,0 +1,309 @@
+openapi: 3.0.0
+info:
+  title: REST Countries API
+  version: '3.1'
+  description: Get information about countries via a RESTful API.
+servers:
+- url: https://restcountries.com
+paths:
+  /v3.1/all:
+    get:
+      summary: List all countries
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v3.1/independent:
+    get:
+      summary: List countries by independence status
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/name/{name}:
+    get:
+      summary: Search countries by name
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/alpha/{code}:
+    get:
+      summary: Search country by code
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/alpha:
+    get:
+      summary: Search countries by list of codes
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: codes
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/currency/{currency}:
+    get:
+      summary: Search countries by currency
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: currency
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/demonym/{demonym}:
+    get:
+      summary: Search countries by demonym
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: demonym
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/lang/{language}:
+    get:
+      summary: Search countries by language
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/capital/{capital}:
+    get:
+      summary: Search countries by capital city
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: capital
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/region/{region}:
+    get:
+      summary: Search countries by region
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: region
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/subregion/{subregion}:
+    get:
+      summary: Search countries by subregion
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: subregion
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string
+  /v3.1/translation/{translation}:
+    get:
+      summary: Search countries by translation
+      tags:
+      - Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: translation
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        schema:
+          type: string

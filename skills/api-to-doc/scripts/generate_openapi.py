@@ -132,7 +132,8 @@ def validate_and_normalize_endpoints(endpoints: list) -> list:
             "path": ep.get("path", "/").lstrip("/"),
             "method": ep.get("method", "GET").upper(),
             "description": ep.get("description", ""),
-            "tag": ep.get("tag", "default")
+            "tag": ep.get("tag", "default"),
+            "parameters": ep.get("parameters", {})
         }
 
         if not normalized_ep["path"].startswith("/"):
