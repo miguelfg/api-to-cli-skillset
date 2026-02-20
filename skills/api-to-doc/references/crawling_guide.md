@@ -9,6 +9,7 @@ The skill now includes three complementary tools for comprehensive API documenta
 1. **HTML Caching** (`fetch_api_info.py`) - Saves fetched pages to `/tmp/api-to-doc-cache`
 2. **Link Extraction** (`link_extractor.py`) - Extracts and categorizes links from documentation
 3. **Multi-Page Crawling** (`crawler.py`) - Traverses multiple documentation pages
+4. **HTML Cleanup + Markdown** (`clean_cached_html.py`, `html_to_markdown.py`) - Reduces noisy HTML and generates compact docs for easier parsing
 
 ## HTML Caching to /tmp
 
@@ -53,6 +54,25 @@ python scripts/fetch_api_info.py <url> --no-cache
 - **Inspection**: Manually review fetched HTML for troubleshooting
 - **Link Extraction**: Cached pages can be analyzed for crawlable links
 - **Debugging**: Keep copies of documentation for analysis
+
+### Convert Cached HTML to Cleaner Artifacts
+
+```bash
+# Batch process cache into /tmp/api-to-doc-cache/cleaned
+python scripts/clean_cached_html.py /tmp/api-to-doc-cache
+
+# Only markdown outputs, truncated for quick review
+python scripts/clean_cached_html.py /tmp/api-to-doc-cache --skip-clean-html --max-lines 1200
+
+# Convert one file manually
+python scripts/html_to_markdown.py /tmp/api-to-doc-cache/<cached>.html /tmp/api-to-doc-cache/<cached>.md
+```
+
+You can also use markdown-preferred extraction during fetch:
+
+```bash
+python scripts/fetch_api_info.py <url> --prefer-md-extraction --save-md-cache --md-max-lines 1200
+```
 
 ## Link Extraction
 

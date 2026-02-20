@@ -2,7 +2,7 @@
 """
 Fetch API documentation from a URL using cURL and parse common documentation patterns.
 Supports HTML documentation, Swagger/OpenAPI specs, and API reference pages.
-Falls back to alternative methods (Playwright, WebFetch) if cURL fails.
+Fail-fast: if documentation cannot be reliably retrieved/extracted, exit non-zero.
 """
 
 import json
@@ -10,11 +10,14 @@ import re
 import subprocess
 import sys
 import hashlib
+import argparse
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 from html.parser import HTMLParser
 from typing import Optional, Dict, List, Any
 from datetime import datetime
+
+from html_processing import html_to_markdown, truncate_lines
 
 def get_tmp_cache_dir() -> Path:
     """Get or create the /tmp cache directory for API documentation."""
@@ -46,7 +49,7 @@ def save_html_page(url: str, content: str) -> Optional[Path]:
 
 
 def fetch_url(url: str, use_cache: bool = True) -> tuple:
-    """Fetch content from URL using cURL, with fallback mechanisms.
+    """Fetch content from URL using cURL.
 
     Returns: (content, cache_path)
     """
@@ -71,11 +74,11 @@ def fetch_url(url: str, use_cache: bool = True) -> tuple:
             # Save to cache
             cache_path = save_html_page(url, result.stdout)
             return result.stdout, cache_path
-        # If cURL fails or returns empty, mention fallback
-        print(f"⚠️  cURL returned limited results for {url}. Consider using browser-based extraction.", file=sys.stderr)
+        # If cURL fails or returns empty, fail-fast upstream.
+        print(f"⚠️  cURL returned limited results for {url}.", file=sys.stderr)
         return result.stdout if result.stdout else "", None
     except FileNotFoundError:
-        print("⚠️  curl not found. Implement fallback to WebFetch or Playwright.", file=sys.stderr)
+        print("⚠️  curl not found.", file=sys.stderr)
         return "", None
 
 def detect_api_type(content: str, url: str) -> str:
@@ -164,6 +167,31 @@ def extract_endpoints_from_html(content: str) -> list:
     for method, path in matches:
         endpoints.append({
             "method": method.upper(),
+            "path": path,
+            "description": "",
+            "parameters": [],
+            "request_examples": [],
+            "response_examples": []
+        })
+
+    # Pattern 3: Explicit endpoint declarations without method.
+    # Example: "The API endpoint /v1/forecast accepts ..."
+    endpoint_only_pattern = r'api\s+endpoint[^<\n]*?(/v\d+/[a-zA-Z0-9_/\-]+)'
+    for path in re.findall(endpoint_only_pattern, content, re.IGNORECASE):
+        endpoints.append({
+            "method": "GET",
+            "path": path,
+            "description": "",
+            "parameters": [],
+            "request_examples": [],
+            "response_examples": []
+        })
+
+    # Pattern 4: Absolute API URLs in forms/links.
+    absolute_api_pattern = r'https?://api[.\-][^"\'<>\s]+(/v\d+/[a-zA-Z0-9_/\-]+)'
+    for path in re.findall(absolute_api_pattern, content, re.IGNORECASE):
+        endpoints.append({
+            "method": "GET",
             "path": path,
             "description": "",
             "parameters": [],
@@ -287,6 +315,11 @@ def extract_base_url(url: str, content: str) -> str:
     parsed = urlparse(url)
     base = f"{parsed.scheme}://{parsed.netloc}"
 
+    # Prefer explicit API hosts when present in docs (e.g., https://api.open-meteo.com/v1/forecast).
+    api_url_match = re.search(r'(https?://api[.\-][^/\s"\'<]+)(?:/v\d+/[a-zA-Z0-9_/\-]*)?', content, re.IGNORECASE)
+    if api_url_match:
+        return api_url_match.group(1).rstrip("/")
+
     # Try to find API base URL in content
     patterns = [
         r'base\s*(?:url|uri|endpoint)[\s:]*["\']?(https?://[^\s"\'<]+)',
@@ -303,19 +336,54 @@ def extract_base_url(url: str, content: str) -> str:
 
     return base
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: fetch_api_info.py <url> [--no-cache]")
-        sys.exit(1)
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Fetch API docs and extract endpoint information."
+    )
+    parser.add_argument("url", help="API docs URL")
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Disable HTML caching and force fresh download",
+    )
+    parser.add_argument(
+        "--prefer-md-extraction",
+        action="store_true",
+        help="Use HTML->Markdown normalized text to extract endpoints/metadata",
+    )
+    parser.add_argument(
+        "--save-md-cache",
+        action="store_true",
+        help="Save a markdown companion file next to cached HTML",
+    )
+    parser.add_argument(
+        "--md-max-lines",
+        type=int,
+        default=0,
+        help="Truncate generated markdown cache to N lines (0 = no truncation)",
+    )
+    return parser.parse_args()
 
-    url = sys.argv[1]
-    use_cache = "--no-cache" not in sys.argv
+
+def main():
+    args = _parse_args()
+    url = args.url
+    use_cache = not args.no_cache
 
     content, cache_path = fetch_url(url, use_cache=use_cache)
 
     if not content:
         print("Failed to fetch content", file=sys.stderr)
         sys.exit(1)
+
+    normalized_markdown = html_to_markdown(content)
+    if args.md_max_lines > 0:
+        normalized_markdown = truncate_lines(normalized_markdown, args.md_max_lines)
+
+    markdown_cache_path = None
+    if args.save_md_cache and cache_path:
+        markdown_cache_path = cache_path.with_suffix(".md")
+        markdown_cache_path.write_text(normalized_markdown, encoding="utf-8")
 
     api_type = detect_api_type(content, url)
 
@@ -327,6 +395,7 @@ def main():
         "cache": {
             "saved": cache_path is not None,
             "path": str(cache_path) if cache_path else None,
+            "markdown_path": str(markdown_cache_path) if markdown_cache_path else None,
             "cache_dir": str(get_tmp_cache_dir())
         }
     }
@@ -340,13 +409,23 @@ def main():
 
     elif api_type == "html_docs":
         result["is_spec"] = False
-        endpoints = extract_endpoints_from_html(content)
-        base_url = extract_base_url(url, content)
+        extraction_source = normalized_markdown if args.prefer_md_extraction else content
+        endpoints = extract_endpoints_from_html(extraction_source)
+        base_url = extract_base_url(url, extraction_source)
+
+        # Strict quality gate: no endpoint extraction means retrieval was not usable.
+        if not endpoints:
+            print(
+                "Failed to extract real API endpoints from documentation. "
+                "Failing instead of generating speculative output.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
         # Extract detailed information for each endpoint
         for endpoint in endpoints:
-            endpoint["parameters"] = extract_parameters_for_endpoint(content, endpoint["path"])
-            endpoint["examples"] = extract_examples_from_content(content, endpoint["path"])
+            endpoint["parameters"] = extract_parameters_for_endpoint(extraction_source, endpoint["path"])
+            endpoint["examples"] = extract_examples_from_content(extraction_source, endpoint["path"])
 
         result["endpoints"] = endpoints
         result["base_url"] = base_url
@@ -355,8 +434,16 @@ def main():
             "Parameters extracted from documentation patterns",
             "Request/response examples sourced from code blocks",
             "HTML page saved to cache for link extraction",
-            "Consider enhancing with browser-based extraction if incomplete"
+            "Optional HTML-to-Markdown preprocessing available for long pages",
+            "Fail-fast enabled when endpoint extraction is empty"
         ]
+    else:
+        print(
+            "Unable to determine API documentation type from fetched content. "
+            "Failing instead of generating speculative output.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     print(json.dumps(result, indent=2))
 

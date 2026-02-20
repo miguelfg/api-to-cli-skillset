@@ -27,7 +27,7 @@ The **api-to-doc** skill converts API URLs into standardized OpenAPI 3.0.0 YAML 
 - Extract parameter types and required/optional status
 - Fallback to Playwright or WebFetch when cURL returns incomplete results
 - HTML parsing with tag extraction and structure analysis
-- Fallback to interactive Q&A for complex or minimal documentation
+- Fail-fast when real documentation cannot be reliably retrieved/extracted
 - Generate valid OpenAPI 3.0.0 YAML with enhanced schema information
 - First step in the api-to-cli workflow
 
@@ -63,27 +63,13 @@ The skill attempts to:
 2. **Detect API type:**
    - If it's already an OpenAPI/Swagger JSON/YAML → Extract directly
    - If it's HTML documentation → Parse for HTTP endpoints
-   - If unclear → Fall back to interactive mode
+   - If unclear → Fail (do not fabricate endpoints)
 3. **Extract endpoints** using regex patterns for common documentation formats
 4. **Identify base URL** from content or request URL
 
-### 3. Interactive Mode (If Needed)
+### 3. Fail-Fast Mode (If Needed)
 
-If auto-detection finds few or no endpoints, the skill prompts interactively:
-
-```
-=== API Configuration ===
-API Title: My API
-API Version: 1.0.0
-Base URL: https://api.example.com
-Description: (optional)
-
-=== Define Endpoints ===
-Method: GET
-Path: /users
-Description: List users
-Tag: Users
-```
+If auto-detection finds no real endpoints or retrieval is incomplete, the skill must fail with an explicit error and stop. Do not invent or manually fabricate endpoint definitions.
 
 ### 4. Generate OpenAPI YAML
 
@@ -93,6 +79,40 @@ Output a valid OpenAPI 3.0.0 file with:
 - All extracted endpoints with methods, paths, and tags
 - Response definitions
 - Parameter extraction (path variables, query params)
+
+### 5. Quality Gates (Required)
+
+Before finalizing the generated OpenAPI file, enforce these gates:
+
+1. **Endpoint normalization gate**
+   - Deduplicate `(method, path)` pairs
+   - Ensure path formatting is valid and HTTP methods are valid
+
+2. **GET endpoint existence gate**
+   - Probe generated GET endpoints (without path template params) against the detected `base_url`
+   - Treat HTTP `2xx/3xx` and compatibility responses (`400/401/403/405/406/409/415/422/429`) as endpoint existence signals
+   - Filter out GET endpoints that fail existence checks (`404`/unreachable)
+
+3. **Fail-fast gate**
+   - If GET probes were attempted and none pass, fail generation instead of writing a misleading spec
+
+4. **Report gate**
+   - Include a quality report in the output spec under `x-quality-gates`
+
+**Manual verification commands (recommended):**
+```bash
+# Check GET endpoints from generated OpenAPI YAML
+python scripts/check_openapi_get_endpoints.py <project-name>-api.yaml
+
+# Strict mode: fail if any probed GET endpoint fails
+python scripts/check_openapi_get_endpoints.py <project-name>-api.yaml --fail-on-any-get-failure
+```
+
+**Direct curl spot-check examples:**
+```bash
+curl -s -L -o /dev/null -w "%{http_code}\n" "https://api.example.com/health"
+curl -s -L -o /dev/null -w "%{http_code}\n" "https://api.example.com/v1/forecast"
+```
 
 ## Usage Examples
 
@@ -115,14 +135,12 @@ Output a valid OpenAPI 3.0.0 file with:
 - `POST /repos/{owner}/{repo}/issues`
 - `GET /repos/{owner}/{repo}/pulls`
 
-### Example 3: Interactive Definition
+### Example 3: Fail-Fast on Insufficient Docs
 
 ```bash
 /api-to-doc https://internal-api.company.com
-# → Auto-detection finds no endpoints
-# → Switches to interactive mode
-# → User defines: 3-5 endpoints manually
-# → Generates OpenAPI YAML
+# → Auto-detection finds no reliable endpoints
+# → Exits with error (no speculative OpenAPI output generated)
 ```
 
 ## Understanding the Output
@@ -201,9 +219,9 @@ If cURL returns incomplete or empty results:
 3. Consider using Playwright skill (webapp-testing) to render JavaScript-heavy docs
 4. Or use WebFetch/WebSearch for additional context gathering
 
-### Fallback: Interactive Mode
+### Fail-Fast: No Fabricated Endpoints
 
-If patterns don't match or additional endpoints are needed, the skill falls back to interactive Q&A where users define endpoints manually. This ensures no API is left unsupported.
+If patterns don't match or endpoint extraction is empty/uncertain, stop with an error. Do not create guessed endpoints.
 
 ## Configuration & Customization
 
@@ -263,7 +281,7 @@ This converts the OpenAPI spec into a comprehensive PRD.md with authentication, 
 1. Skill will recommend browser-based extraction
 2. Use Playwright (webapp-testing skill) to render the page first
 3. Use WebFetch for alternative content fetching
-4. Fall back to interactive mode for manual definition
+4. Retry with a direct OpenAPI/Swagger URL if available
 
 ### Incomplete parameter extraction
 
@@ -295,7 +313,7 @@ This converts the OpenAPI spec into a comprehensive PRD.md with authentication, 
 - Base URL in JavaScript or external config
 - Multiple server environments (dev/staging/prod)
 
-**Solution:** Edit the generated YAML manually or specify in interactive mode
+**Solution:** Edit the generated YAML manually after successful extraction
 
 ### Some endpoints missing
 
@@ -307,7 +325,7 @@ This converts the OpenAPI spec into a comprehensive PRD.md with authentication, 
 **Solutions:**
 1. Add missing endpoints manually to generated YAML
 2. Use browser-based extraction to access all documentation
-3. Use interactive mode to add additional endpoints
+3. Retry extraction from a more complete source URL
 
 ## Advanced Features
 
@@ -369,6 +387,24 @@ All fetched documentation pages are automatically saved to:
 python scripts/fetch_api_info.py <url> --no-cache
 ```
 
+### HTML Cleanup and Markdown Conversion
+
+When docs pages are very large/noisy, normalize them before analysis:
+
+```bash
+# Convert one HTML file to compact markdown
+python scripts/html_to_markdown.py /tmp/api-to-doc-cache/<cached>.html /tmp/api-to-doc-cache/<cached>.md
+
+# Batch-clean all cached HTML files and generate *.clean.html + *.md
+python scripts/clean_cached_html.py /tmp/api-to-doc-cache
+```
+
+Use markdown-preferred extraction directly from the fetch step:
+
+```bash
+python scripts/fetch_api_info.py <url> --prefer-md-extraction --save-md-cache --md-max-lines 1200
+```
+
 ### Link Extraction
 
 The `link_extractor.py` helper identifies crawlable API documentation pages:
@@ -423,5 +459,5 @@ Run skills in sequence after this step:
 ```
 2. Generate CLI project from PRD:
 ```bash
-/prd-to-cli @PRD.md <output-folder>
+/prd-to-cli @<project-name>_PRD.md <output-folder>
 ```
