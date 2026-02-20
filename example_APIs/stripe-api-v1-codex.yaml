@@ -20,7 +20,7 @@ paths:
                 properties:
                   data:
                     type: object
-  /v1/charges/ch_3LmzzQ2eZvKYlo2C0XjzUzJV:
+  /v1/charges/{ch_id}:
     get:
       summary: ''
       tags:
@@ -35,21 +35,715 @@ paths:
                 properties:
                   data:
                     type: object
+      parameters:
+      - name: ch_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/accounts:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/accounts/{acct_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: acct_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/application_fees/{fee_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: fee_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/application_fees:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/customers:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/balance:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/balance_settings:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/balance_transactions/{txn_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: txn_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/balance_transactions:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/alerts:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/alerts/{alrt_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: alrt_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/billing/credit_balance_summary:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/credit_balance_transactions/{cbtxn_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cbtxn_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/billing/credit_balance_transactions:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/credit_grants:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/credit_grants/{credgr_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: credgr_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/billing/meters:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/meters/{mtr_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: mtr_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/billing/meter_events:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/billing/meters/{mtr_id}/event_summaries:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: mtr_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/accounts/{acct_id}/capabilities/card_payments:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: acct_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/accounts/{acct_id}/capabilities:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: acct_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/capital/financing_offers/{financingoffer_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: financingoffer_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/capital/financing_offers:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/capital/financing_offers/{financingoffer_id}/mark_delivered:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: financingoffer_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/capital/financing_summary:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+  /v1/customers/{cus_id}/sources:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cus_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/customers/{acct_id}/sources/{card_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: acct_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: card_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/customers/{cus_id}/cards/{card_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cus_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: card_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/customers/{cus_id}/cash_balance:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cus_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/customers/{cus_id}/funding_instructions:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cus_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/customers/{cus_id}/cash_balance_transactions/{ccsbtxn_id}:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cus_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: ccsbtxn_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/customers/{cus_id}/cash_balance_transactions:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: cus_id
+        in: path
+        required: true
+        schema:
+          type: string
 x-quality-gates:
   enabled: true
   base_url: https://api.stripe.com
-  total_input_endpoints: 2
-  get_probe_attempted: 2
-  get_probe_passed: 2
-  get_probe_failed: 0
-  filtered_out: 0
+  total_input_endpoints: 38
+  get_probe_attempted: 18
+  get_probe_passed: 15
+  get_probe_failed: 3
+  filtered_out: 3
   details:
   - method: GET
     path: /v1/charges
     status: '401'
     exists: true
   - method: GET
-    path: /v1/charges/ch_3LmzzQ2eZvKYlo2C0XjzUzJV
+    path: /v1/account_links
+    status: '404'
+    exists: false
+  - method: GET
+    path: /v1/account_sessions
+    status: '404'
+    exists: false
+  - method: GET
+    path: /v1/accounts
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/application_fees
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/customers
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/balance
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/balance_settings
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/balance_transactions
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/alerts
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/credit_balance_summary
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/credit_balance_transactions
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/credit_grants
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/meters
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/meter_events
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/billing/meter_event_adjustments
+    status: '404'
+    exists: false
+  - method: GET
+    path: /v1/capital/financing_offers
+    status: '401'
+    exists: true
+  - method: GET
+    path: /v1/capital/financing_summary
     status: '401'
     exists: true
   pass: true
