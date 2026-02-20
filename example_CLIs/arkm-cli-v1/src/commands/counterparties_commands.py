@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all counterparties."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/counterparties')
+        results = client.get('/counterparties/entity/{entity}')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a counterpartie by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/counterparties/{id}')
+        result = client.get('/counterparties/entity/{entity}/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/counterparties', payload)
+        result = client.post('/counterparties/entity/{entity}', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

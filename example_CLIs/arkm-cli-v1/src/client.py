@@ -12,7 +12,7 @@ class APIClient:
 
     def __init__(self, config: Config):
         self.config = config
-        self.base_url = config.get('base_url', 'https://intel.arkm.com/api')
+        self.base_url = config.get('base_url', 'https://api.arkm.com')
         self.session = requests.Session()
         self._setup_auth()
 

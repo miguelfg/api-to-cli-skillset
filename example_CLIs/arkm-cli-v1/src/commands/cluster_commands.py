@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all cluster."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/cluster')
+        results = client.get('/cluster/{id}/summary')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a cluste by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/cluster/{id}')
+        result = client.get('/cluster/{id}/summary/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/cluster', payload)
+        result = client.post('/cluster/{id}/summary', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

@@ -47,8 +47,8 @@ class PRDParser:
         return re.sub(r"[^a-z0-9]", "", value.lower())
 
     def _extract_endpoint_inventory_paths(self) -> List[str]:
-        """Extract endpoint paths from markdown bullets like - `/v1/forecast`."""
-        return re.findall(r'^\s*-\s*`(/[^`]+)`\s*$', self.content, re.MULTILINE)
+        """Extract endpoint paths from markdown bullets like - `/v1/forecast` (with optional trailing text)."""
+        return re.findall(r'^\s*-\s*`(/[^`]+)`(?:\s+—.*)?\s*$', self.content, re.MULTILINE)
 
     def _extract_api_info(self):
         """Extract API title, version, base URL."""
@@ -95,6 +95,30 @@ class PRDParser:
             leaf = path.rstrip("/").split("/")[-1]
             normalized_path_map[self._normalize_resource_token(leaf)] = path
 
+        def resolve_resource_path(resource_name: str) -> str:
+            """Resolve a best-fit endpoint path for a resource from endpoint inventory."""
+            # 1) Prefer exact first-segment matches from endpoint inventory.
+            candidates = []
+            for path in endpoint_paths:
+                parts = [p for p in path.split("/") if p]
+                if not parts:
+                    continue
+                if self._normalize_resource_token(parts[0]) == self._normalize_resource_token(resource_name):
+                    candidates.append(path)
+
+            if candidates:
+                # Prefer paths without templated params, then shortest.
+                candidates.sort(key=lambda p: ("{" in p, p.count("/"), len(p)))
+                return candidates[0]
+
+            # 2) Fallback to leaf-token fuzzy match.
+            normalized_item = self._normalize_resource_token(resource_name)
+            if normalized_item in normalized_path_map:
+                return normalized_path_map[normalized_item]
+
+            # 3) Last resort.
+            return f"/{resource_name}"
+
         # Preferred format in generated PRDs:
         # - Resources: `airquality, archive, forecast`
         resources_line = re.search(
@@ -106,8 +130,7 @@ class PRDParser:
             raw_resources = resources_line.group(1)
             for item in [part.strip().lower() for part in raw_resources.split(",")]:
                 if item:
-                    normalized_item = self._normalize_resource_token(item)
-                    resolved_path = normalized_path_map.get(normalized_item, f"/{item}")
+                    resolved_path = resolve_resource_path(item)
                     self.resources[item] = {
                         "name": item,
                         "path": resolved_path,
@@ -124,7 +147,7 @@ class PRDParser:
             resource_name = match.group(1).lower()
             self.resources[resource_name] = {
                 "name": resource_name,
-                "path": f"/{resource_name}",
+                "path": resolve_resource_path(resource_name),
                 "endpoints": self._extract_endpoints_for_resource(resource_name),
             }
 

@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all intelligence."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/intelligence')
+        results = client.get('/intelligence/search')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a intelligenc by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/intelligence/{id}')
+        result = client.get('/intelligence/search/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/intelligence', payload)
+        result = client.post('/intelligence/search', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

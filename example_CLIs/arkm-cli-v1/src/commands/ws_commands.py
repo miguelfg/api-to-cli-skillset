@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all ws."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/ws')
+        results = client.get('/ws/sessions')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a w by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/ws/{id}')
+        result = client.get('/ws/sessions/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/ws', payload)
+        result = client.post('/ws/sessions', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

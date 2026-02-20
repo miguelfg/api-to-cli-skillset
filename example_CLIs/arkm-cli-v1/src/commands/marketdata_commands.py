@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all marketdata."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/marketdata')
+        results = client.get('/marketdata/altcoin_index')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a marketdat by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/marketdata/{id}')
+        result = client.get('/marketdata/altcoin_index/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/marketdata', payload)
+        result = client.post('/marketdata/altcoin_index', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all arkm."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/arkm')
+        results = client.get('/arkm/circulating')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a ark by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/arkm/{id}')
+        result = client.get('/arkm/circulating/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/arkm', payload)
+        result = client.post('/arkm/circulating', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

@@ -1,7 +1,7 @@
 # PRD: Arkham Intel API Python CLI Client
 
 **API Version:** 1.1.0
-**Base URL:** https://intel.arkm.com/api
+**Base URL:** https://api.arkm.com
 **Source Spec:** `example_APIs/arkm-intel-api-v1/openapi.yaml`
 **Resources:** `arkm, balances, chains, cluster, counterparties, flow, history, intelligence, loans, marketdata, networks, portfolio, swaps, tag, token, transfers, tx, user, volume, ws`
 
@@ -47,7 +47,7 @@ uv run arkm-cli --help
 Environment variables:
 ```env
 ARKHAM_INTEL_API_API_KEY=<your_api_key>
-ARKHAM_INTEL_API_BASE_URL=https://intel.arkm.com/api
+ARKHAM_INTEL_API_BASE_URL=https://api.arkm.com
 ARKHAM_INTEL_API_TIMEOUT=30
 ```
 

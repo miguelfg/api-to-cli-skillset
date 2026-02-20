@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all tag."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/tag')
+        results = client.get('/tag/{id}/params')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a ta by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/tag/{id}')
+        result = client.get('/tag/{id}/params/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/tag', payload)
+        result = client.post('/tag/{id}/params', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

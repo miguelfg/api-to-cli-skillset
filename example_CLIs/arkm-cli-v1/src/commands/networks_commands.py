@@ -20,7 +20,7 @@ def list(ctx, format):
     """List all networks."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/networks')
+        results = client.get('/networks/status')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -37,7 +37,7 @@ def get(ctx, id):
     """Get a network by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/networks/{id}')
+        result = client.get('/networks/status/{id}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -53,7 +53,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {}
-        result = client.post('/networks', payload)
+        result = client.post('/networks/status', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
