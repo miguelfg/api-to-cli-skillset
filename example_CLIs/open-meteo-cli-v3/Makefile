@@ -13,13 +13,14 @@ help:
 	@echo "  make run          Show CLI help"
 	@echo ""
 	@echo "  CLI examples:"
-	@echo "  make overview-list Example: uv run $(PROJECT_NAME) overview list"
-	@echo "  make purpose-list Example: uv run $(PROJECT_NAME) purpose list"
-	@echo "  make requirements-list Example: uv run $(PROJECT_NAME) requirements list"
-	@echo "  make setup-list   Example: uv run $(PROJECT_NAME) setup list"
-	@echo "  make verify-list  Example: uv run $(PROJECT_NAME) verify list"
-	@echo "  make method-list  Example: uv run $(PROJECT_NAME) method list"
-	@echo "  make strategy-list Example: uv run $(PROJECT_NAME) strategy list"
+	@echo "  make airquality-list Example: uv run $(PROJECT_NAME) airquality list"
+	@echo "  make archive-list Example: uv run $(PROJECT_NAME) archive list"
+	@echo "  make bom-list     Example: uv run $(PROJECT_NAME) bom list"
+	@echo "  make climate-list Example: uv run $(PROJECT_NAME) climate list"
+	@echo "  make cma-list     Example: uv run $(PROJECT_NAME) cma list"
+	@echo "  make dmi-list     Example: uv run $(PROJECT_NAME) dmi list"
+	@echo "  make dwdicon-list Example: uv run $(PROJECT_NAME) dwdicon list"
+	@echo "  make ecmwf-list   Example: uv run $(PROJECT_NAME) ecmwf list"
 
 install:
 	uv sync
@@ -43,25 +44,28 @@ run:
 batch-example:
 	uv run $(PROJECT_NAME) batch --input-file data/batch.csv --format json --output-path ./output
 
-overview-list:
-	uv run $(PROJECT_NAME) overview list
+airquality-list:
+	uv run $(PROJECT_NAME) airquality list
 
-purpose-list:
-	uv run $(PROJECT_NAME) purpose list
+archive-list:
+	uv run $(PROJECT_NAME) archive list
 
-requirements-list:
-	uv run $(PROJECT_NAME) requirements list
+bom-list:
+	uv run $(PROJECT_NAME) bom list
 
-setup-list:
-	uv run $(PROJECT_NAME) setup list
+climate-list:
+	uv run $(PROJECT_NAME) climate list
 
-verify-list:
-	uv run $(PROJECT_NAME) verify list
+cma-list:
+	uv run $(PROJECT_NAME) cma list
 
-method-list:
-	uv run $(PROJECT_NAME) method list
+dmi-list:
+	uv run $(PROJECT_NAME) dmi list
 
-strategy-list:
-	uv run $(PROJECT_NAME) strategy list
+dwdicon-list:
+	uv run $(PROJECT_NAME) dwdicon list
+
+ecmwf-list:
+	uv run $(PROJECT_NAME) ecmwf list
 
 .DEFAULT_GOAL := help

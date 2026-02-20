@@ -6,13 +6,26 @@ open-meteo-cli-v3 - Auto-generated CLI from PRD.md
 import click
 from src.config import Config
 
-from src.commands.overview_commands import overview_group
-from src.commands.purpose_commands import purpose_group
-from src.commands.requirements_commands import requirements_group
-from src.commands.setup_commands import setup_group
-from src.commands.verify_commands import verify_group
-from src.commands.method_commands import method_group
-from src.commands.strategy_commands import strategy_group
+from src.commands.airquality_commands import airquality_group
+from src.commands.archive_commands import archive_group
+from src.commands.bom_commands import bom_group
+from src.commands.climate_commands import climate_group
+from src.commands.cma_commands import cma_group
+from src.commands.dmi_commands import dmi_group
+from src.commands.dwdicon_commands import dwdicon_group
+from src.commands.ecmwf_commands import ecmwf_group
+from src.commands.elevation_commands import elevation_group
+from src.commands.ensemble_commands import ensemble_group
+from src.commands.flood_commands import flood_group
+from src.commands.forecast_commands import forecast_group
+from src.commands.gem_commands import gem_group
+from src.commands.gfs_commands import gfs_group
+from src.commands.jma_commands import jma_group
+from src.commands.knmi_commands import knmi_group
+from src.commands.marine_commands import marine_group
+from src.commands.meteofrance_commands import meteofrance_group
+from src.commands.metno_commands import metno_group
+from src.commands.search_commands import search_group
 
 
 @click.group()
@@ -32,13 +45,26 @@ def cli(ctx, config, verbose):
 
 
 # Register resource commands
-cli.add_command(overview_group, 'overview')
-cli.add_command(purpose_group, 'purpose')
-cli.add_command(requirements_group, 'requirements')
-cli.add_command(setup_group, 'setup')
-cli.add_command(verify_group, 'verify')
-cli.add_command(method_group, 'method')
-cli.add_command(strategy_group, 'strategy')
+cli.add_command(airquality_group, 'airquality')
+cli.add_command(archive_group, 'archive')
+cli.add_command(bom_group, 'bom')
+cli.add_command(climate_group, 'climate')
+cli.add_command(cma_group, 'cma')
+cli.add_command(dmi_group, 'dmi')
+cli.add_command(dwdicon_group, 'dwdicon')
+cli.add_command(ecmwf_group, 'ecmwf')
+cli.add_command(elevation_group, 'elevation')
+cli.add_command(ensemble_group, 'ensemble')
+cli.add_command(flood_group, 'flood')
+cli.add_command(forecast_group, 'forecast')
+cli.add_command(gem_group, 'gem')
+cli.add_command(gfs_group, 'gfs')
+cli.add_command(jma_group, 'jma')
+cli.add_command(knmi_group, 'knmi')
+cli.add_command(marine_group, 'marine')
+cli.add_command(meteofrance_group, 'meteofrance')
+cli.add_command(metno_group, 'metno')
+cli.add_command(search_group, 'search')
 
 
 @cli.command()

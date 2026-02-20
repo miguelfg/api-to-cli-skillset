@@ -13,6 +13,8 @@ Parses PRD.md to extract API resources and endpoints, then generates:
 import json
 import re
 import os
+import shutil
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -39,6 +41,15 @@ class PRDParser:
             "auth_methods": self.auth_methods,
         }
 
+    @staticmethod
+    def _normalize_resource_token(value: str) -> str:
+        """Normalize a resource token for fuzzy matching."""
+        return re.sub(r"[^a-z0-9]", "", value.lower())
+
+    def _extract_endpoint_inventory_paths(self) -> List[str]:
+        """Extract endpoint paths from markdown bullets like - `/v1/forecast`."""
+        return re.findall(r'^\s*-\s*`(/[^`]+)`\s*$', self.content, re.MULTILINE)
+
     def _extract_api_info(self):
         """Extract API title, version, base URL."""
         # Extract title
@@ -51,26 +62,53 @@ class PRDParser:
         if version_match:
             self.api_info["version"] = version_match.group(1)
 
-        # Extract base URL
-        base_url_match = re.search(r'\*\*Base URL:\*\*\s+`(.+?)`', self.content)
-        if base_url_match:
-            self.api_info["base_url"] = base_url_match.group(1)
+        # Extract base URL from multiple PRD styles
+        base_url_patterns = [
+            r'\*\*Base URL:\*\*\s+`(.+?)`',       # **Base URL:** `https://...`
+            r'\*\*Base URL:\*\*\s+(.+?)$',        # **Base URL:** https://...
+            r'`base_url`:\s*`(.+?)`',             # - `base_url`: `https://...`
+            r'base_url\s*=\s*(https?://\S+)',     # base_url=https://...
+        ]
+        for pattern in base_url_patterns:
+            match = re.search(pattern, self.content, re.MULTILINE)
+            if match:
+                self.api_info["base_url"] = match.group(1).strip()
+                break
 
     def _extract_resources(self):
         """Extract API resources (e.g., pets, users, orders) from section headers."""
+        endpoint_paths = self._extract_endpoint_inventory_paths()
+        normalized_path_map = {}
+        for path in endpoint_paths:
+            leaf = path.rstrip("/").split("/")[-1]
+            normalized_path_map[self._normalize_resource_token(leaf)] = path
+
+        # Preferred format in generated PRDs:
+        # - Resources: `airquality, archive, forecast`
+        resources_line = re.search(r'Resources:\s*`([^`]+)`', self.content)
+        if resources_line:
+            raw_resources = resources_line.group(1)
+            for item in [part.strip().lower() for part in raw_resources.split(",")]:
+                if item:
+                    normalized_item = self._normalize_resource_token(item)
+                    resolved_path = normalized_path_map.get(normalized_item, f"/{item}")
+                    self.resources[item] = {
+                        "name": item,
+                        "path": resolved_path,
+                        "endpoints": self._extract_endpoints_for_resource(item),
+                    }
+            if self.resources:
+                return
+
         # Prefer explicit resource headers: "### <Name> Resource"
         explicit_pattern = r'^###\s+([A-Z][A-Za-z]+)\s+Resource$'
         matches = list(re.finditer(explicit_pattern, self.content, re.MULTILINE))
-
-        # Fallback for legacy PRDs that omit the "Resource" suffix.
-        if not matches:
-            fallback_pattern = r'^###\s+([A-Z][A-Za-z]+)$'
-            matches = list(re.finditer(fallback_pattern, self.content, re.MULTILINE))
 
         for match in matches:
             resource_name = match.group(1).lower()
             self.resources[resource_name] = {
                 "name": resource_name,
+                "path": f"/{resource_name}",
                 "endpoints": self._extract_endpoints_for_resource(resource_name),
             }
 
@@ -131,6 +169,7 @@ class CLIProjectGenerator:
         self._generate_pyproject(project_path)
         self._generate_resource_commands(project_path)
         self._generate_shared_templates(project_path)
+        self._post_process_python_files(project_path)
 
         print(f"✅ Project generated: {project_path}")
         return project_path
@@ -565,6 +604,7 @@ openpyxl>=3.1.2
     def _generate_resource_command_file(self, project_path: Path, resource_name: str, resource_data: Dict):
         """Generate a command file for a specific resource."""
         endpoints = resource_data.get("endpoints", [])
+        resource_path = resource_data.get("path", f"/{resource_name}")
         endpoint_options = "\n    ".join(
             f'@{resource_name}_group.command()\n    def {i+1}_{ep["description"].lower().replace(" ", "_")}():\n        """' +
             ep["description"] + '"""\n        pass'
@@ -593,7 +633,7 @@ def list(ctx, format):
     """List all {resource_name}."""
     client = APIClient(ctx.obj['config'])
     try:
-        results = client.get('/{resource_name}')
+        results = client.get('{resource_path}')
         if format == 'json':
             import json
             click.echo(json.dumps(results, indent=2))
@@ -610,7 +650,7 @@ def get(ctx, id):
     """Get a {resource_name[:-1]} by ID."""
     client = APIClient(ctx.obj['config'])
     try:
-        result = client.get('/{resource_name}/{{id}}')
+        result = client.get('{resource_path}/{{id}}')
         import json
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
@@ -626,7 +666,7 @@ def create(ctx, data):
     try:
         import json
         payload = json.loads(data) if data else {{}}
-        result = client.post('/{resource_name}', payload)
+        result = client.post('{resource_path}', payload)
         click.echo(json.dumps(result, indent=2))
     except Exception as e:
         click.echo(f"Error: {{e}}", err=True)
@@ -634,6 +674,41 @@ def create(ctx, data):
 
         file_path = project_path / "src" / "commands" / f"{resource_name}_commands.py"
         file_path.write_text(command_content)
+
+    def _post_process_python_files(self, project_path: Path):
+        """Best-effort lint/format/import-fix pass for generated Python files."""
+        targets = ["src", "tests"]
+
+        def run_step(label: str, cmd: List[str]):
+            try:
+                result = subprocess.run(
+                    cmd,
+                    cwd=project_path,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode == 0:
+                    print(f"✅ Post-process: {label}")
+                else:
+                    print(f"⚠️ Post-process skipped/failed ({label}): {result.stderr.strip() or result.stdout.strip()}")
+            except Exception as exc:
+                print(f"⚠️ Post-process skipped ({label}): {exc}")
+
+        # Prefer ruff when available (includes lint fixes + formatting + import sorting).
+        if shutil.which("ruff"):
+            run_step("ruff check --fix", ["ruff", "check", *targets, "--fix"])
+            run_step("ruff format", ["ruff", "format", *targets])
+            return
+
+        # Fallback chain when ruff is not available.
+        if shutil.which("isort"):
+            run_step("isort", ["isort", *targets])
+        if shutil.which("black"):
+            run_step("black", ["black", *targets])
+
+        # Minimal syntax lint fallback.
+        run_step("py_compile", ["python", "-m", "py_compile", *[str(p) for p in project_path.rglob("*.py")]])
 
 
 def load_prd(prd_path: str) -> str:

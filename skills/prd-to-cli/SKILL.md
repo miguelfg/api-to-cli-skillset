@@ -143,6 +143,12 @@ When you invoke the skill, it asks:
 
 The skill generates a complete project with CLI structure matching your PRD resources.
 
+Generation safeguards (required):
+- Derive `base_url` from PRD metadata reliably (support formats like `**Base URL:** ...` and ``- `base_url`: `...```).
+- Derive resources from explicit resource lists/endpoint inventory; do not treat generic section headings (e.g., Overview, Purpose) as API resources.
+- Map generated command endpoints to discovered API paths (for example `/v1/air-quality`, not naive `/<resource>`).
+- Ensure packaging metadata supports `uv run [cli-name]` (console script + package discovery).
+
 **Example PRD sections:**
 ```markdown
 ### PETS Resource
@@ -157,6 +163,24 @@ uv run [cli-name] orders create --data '...'
 uv run [cli-name] users get --username john
 uv run [cli-name] batch --input-file data/batch.csv
 ```
+
+### Step 4: Post-Generation Code Quality Pass
+
+The generation script should run a best-effort quality pass on generated Python files:
+- Lint/fix issues
+- Format code
+- Sort/fix imports
+
+Preferred toolchain:
+1. `ruff check --fix src tests`
+2. `ruff format src tests`
+
+Fallback if `ruff` is unavailable:
+1. `isort src tests`
+2. `black src tests`
+3. Syntax check via `python -m py_compile`
+
+This can be done directly from the skill script (`scripts/generate_cli_from_prd.py`) and should not block generation if tooling is missing.
 
 ### Step 4: Batch Processing
 
@@ -232,6 +256,7 @@ Required validation after generation:
 ```bash
 make install
 uv run [cli-name] --help
+make <resource>-list
 ```
 
 If `make install` fails due to dependency resolution, update generated dependency pins before considering generation complete.
