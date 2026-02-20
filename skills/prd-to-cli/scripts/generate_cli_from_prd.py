@@ -477,7 +477,7 @@ verbose=false
 requests>=2.28.0
 python-dotenv>=0.19.0
 pandas>=1.3.0
-openpyxl>=3.7.0
+openpyxl>=3.1.2
 """
         (project_path / "requirements.txt").write_text(requirements)
 
@@ -497,7 +497,7 @@ openpyxl>=3.7.0
             '"requests>=2.28.0"',
             '"python-dotenv>=0.19.0"',
             '"pandas>=1.3.0"',
-            '"openpyxl>=3.7.0"',
+            '"openpyxl>=3.1.2"',
         ]
         dependencies_block = ",\n    ".join(dependencies)
 
@@ -514,6 +514,20 @@ openpyxl>=3.7.0
     def _generate_shared_templates(self, project_path: Path):
         """Generate reusable template-based project files."""
         safe_project_name = self.project_name.replace("_", "-")
+        resource_names = list(self.parsed_prd["resources"].keys())
+        resource_targets = []
+        resource_help_lines = []
+        for resource in resource_names[:8]:
+            target = f"{resource}-list"
+            resource_help_lines.append(f"\t@echo \"  make {target:<12} Example: uv run $(PROJECT_NAME) {resource} list\"")
+            resource_targets.extend(
+                [
+                    f"{target}:",
+                    f"\tuv run $(PROJECT_NAME) {resource} list",
+                    "",
+                ]
+            )
+
         replacements = {
             "PROJECT_NAME": self.project_name,
             "PROJECT_NAME_DASH": safe_project_name,
@@ -521,6 +535,8 @@ openpyxl>=3.7.0
             "BASE_URL": self.parsed_prd["api_info"].get("base_url", "https://api.example.com"),
             "TIMESTAMP_FORMAT": "%Y%m%d_%H%M%S",
             "ENV_PREFIX": re.sub(r"[^A-Z0-9]", "_", self.project_name.upper()),
+            "RESOURCE_HELP_LINES": "\n".join(resource_help_lines) if resource_help_lines else "\t@echo \"  (no resource groups discovered from PRD)\"",
+            "RESOURCE_TARGETS": "\n".join(resource_targets).rstrip(),
         }
 
         files_to_render = [

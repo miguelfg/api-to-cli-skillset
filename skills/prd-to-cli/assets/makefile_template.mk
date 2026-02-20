@@ -11,6 +11,9 @@ help:
 	@echo "  make format       Format source code"
 	@echo "  make test         Run tests"
 	@echo "  make run          Show CLI help"
+	@echo ""
+	@echo "  CLI examples:"
+{RESOURCE_HELP_LINES}
 
 install:
 	uv sync
@@ -30,5 +33,10 @@ test:
 
 run:
 	uv run $(PROJECT_NAME) --help
+
+batch-example:
+	uv run $(PROJECT_NAME) batch --input-file data/batch.csv --format json --output-path ./output
+
+{RESOURCE_TARGETS}
 
 .DEFAULT_GOAL := help

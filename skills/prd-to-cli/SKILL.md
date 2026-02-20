@@ -77,6 +77,10 @@ The skill will:
    - `logs/` — Log directory (if file logging enabled)
    - `data/` and `output/` — Data directories
 
+   Packaging requirements:
+   - `pyproject.toml` must include a valid console script entry point for `uv run [cli-name]`.
+   - `pyproject.toml` must include setuptools package discovery for the generated `src` package (e.g., include `src*`).
+
 3. **Support batch processing:**
    - Accept CSV format: `method,endpoint,param1,param2`
    - Accept TXT format (JSON Lines): one request per line
@@ -215,6 +219,25 @@ The generated `src/client.py` and `requirements.txt` are configured for the sele
 
 ---
 
+## Dependency Compatibility (Required)
+
+Generated projects must install successfully with `uv` on supported Python versions.
+
+Rules:
+- Keep dependency versions resolvable on PyPI (do not use non-existent version ranges).
+- Keep `requirements.txt` and `pyproject.toml` dependency constraints aligned.
+- Prefer stable minimum versions known to resolve (for example, `openpyxl>=3.1.2`).
+
+Required validation after generation:
+```bash
+make install
+uv run [cli-name] --help
+```
+
+If `make install` fails due to dependency resolution, update generated dependency pins before considering generation complete.
+
+---
+
 ## Makefile Integration
 
 Generated projects include a `Makefile` with common development tasks:
@@ -238,6 +261,11 @@ make users-update      # PUT /users/{id}
 ```
 
 Each endpoint target calls the CLI with example parameters for quick testing.
+
+Generated Makefile must also include:
+- `make run` using `uv run $(PROJECT_NAME) --help` (not `python -m src.cli`)
+- `make batch-example` with a sample batch invocation
+- At least one per-resource example target (e.g., `make <resource>-list`)
 
 ---
 
