@@ -31,13 +31,13 @@ Before running the workflow, copy these skills into your local project under `sk
 Claude Code:
 
 ```bash
-$api-to-doc <api-docs-url> [output-path]
+/api-to-doc <api-docs-url> [output-path]
 ```
 
 Codex:
 
 ```bash
-/api-to-doc <api-docs-url> [output-path]
+$api-to-doc <api-docs-url> [output-path]
 ```
 
 ### 2) OpenAPI to PRD
@@ -45,13 +45,13 @@ Codex:
 Claude Code:
 
 ```bash
-$doc-to-prd <api-spec-path> [output-path]
+/doc-to-prd <api-spec-path> [output-path]
 ```
 
 Codex:
 
 ```bash
-/doc-to-prd <api-spec-path> [output-path]
+$doc-to-prd <api-spec-path> [output-path]
 ```
 
 Notes:
@@ -65,13 +65,13 @@ Notes:
 Claude Code:
 
 ```bash
-$prd-to-cli <prd-file> <output-dir>
+/prd-to-cli <prd-file> <output-dir>
 ```
 
 Codex:
 
 ```bash
-/prd-to-cli <prd-file> <output-dir>
+$prd-to-cli <prd-file> <output-dir>
 ```
 
 Generated project includes:
