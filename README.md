@@ -6,6 +6,14 @@ Convert API docs/specs into Python CLI projects in three steps:
 2. `doc-to-prd` -> PRD (`{project_name}_PRD.md`)
 3. `prd-to-cli` -> generated CLI project
 
+## Setup First
+
+Before running the workflow, copy these skills into your local project under `skills/`:
+
+- `skills/api-to-doc/`
+- `skills/doc-to-prd/`
+- `skills/prd-to-cli/`
+
 ## Repository Structure
 
 - `skills/api-to-doc/` - API URL/docs -> OpenAPI 3.0 YAML
@@ -20,21 +28,31 @@ Convert API docs/specs into Python CLI projects in three steps:
 
 ### 1) API docs to OpenAPI
 
+Claude Code:
+
 ```bash
-python skills/api-to-doc/scripts/fetch_api_info.py <url> --no-cache
+$api-to-doc <api-docs-url> [output-path]
 ```
 
-Output artifact convention:
-- `<project-name>-api.yaml`
+Codex:
+
+```bash
+/api-to-doc <api-docs-url> [output-path]
+```
 
 ### 2) OpenAPI to PRD
 
+Claude Code:
+
 ```bash
-/doc-to-prd @<project-name>-api.yaml [output-path]
+$doc-to-prd <api-spec-path> [output-path]
 ```
 
-Output artifact convention:
-- `{project_name}_PRD.md`
+Codex:
+
+```bash
+/doc-to-prd <api-spec-path> [output-path]
+```
 
 Notes:
 - `project_name` is inferred from the spec/docs when possible.
@@ -44,8 +62,16 @@ Notes:
 
 ### 3) PRD to CLI project
 
+Claude Code:
+
 ```bash
-python skills/prd-to-cli/scripts/generate_cli_from_prd.py <prd_file> <output_dir> [project_name]
+$prd-to-cli <prd-file> <output-dir>
+```
+
+Codex:
+
+```bash
+/prd-to-cli <prd-file> <output-dir>
 ```
 
 Generated project includes:
@@ -55,11 +81,35 @@ Generated project includes:
 - `tests/test_cli.py`
 - `requirements.txt`, `.env.example`
 
+## Expected Artifacts
+
+### Step 1: `api-to-doc`
+- Artifact: OpenAPI YAML
+- Naming convention: `<project-name>-api.yaml`
+- Example: `example_APIs/stripe-api-v1-codex.yaml`
+
+### Step 2: `doc-to-prd`
+- Artifact: PRD markdown
+- Naming convention: `{project_name}_PRD.md`
+- Example: `example_PRDs/arkham_intel_api_PRD.md`
+
+### Step 3: `prd-to-cli`
+- Artifact: generated CLI project directory
+- Naming convention: `<cli-name>/` (or provided output folder)
+- Example: `example_CLIs/arkm-cli/`
+- Common generated files:
+  - `pyproject.toml`
+  - `Makefile`
+  - `src/cli.py`
+  - `src/client.py`
+  - `tests/test_cli.py`
+
 ## Running Generated CLIs
 
 Use CLI entry points with `uv`:
 
 ```bash
+cd <generated-project-dir>
 uv sync
 uv run [cli-name] --help
 uv run [cli-name] <resource> <command> [options]
