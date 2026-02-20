@@ -5,7 +5,6 @@ Basic CLI smoke tests for generated projects.
 import importlib.util
 
 from click.testing import CliRunner
-
 from src.cli import cli
 
 

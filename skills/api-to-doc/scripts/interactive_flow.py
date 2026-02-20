@@ -6,13 +6,16 @@ Interactive fallback for manually defining API endpoints when auto-detection fai
 import json
 import sys
 
+
 def ask_api_details() -> dict:
     """Interactive Q&A for API details."""
     print("\n=== API Configuration ===\n")
 
     title = input("API Title (e.g., 'Petstore API'): ").strip() or "API"
     version = input("API Version (default: 1.0.0): ").strip() or "1.0.0"
-    base_url = input("Base URL (e.g., https://api.example.com): ").strip() or "http://localhost:8000"
+    base_url = (
+        input("Base URL (e.g., https://api.example.com): ").strip() or "http://localhost:8000"
+    )
     description = input("Description (optional): ").strip() or ""
 
     return {
@@ -20,8 +23,9 @@ def ask_api_details() -> dict:
         "version": version,
         "base_url": base_url,
         "description": description,
-        "endpoints": []
+        "endpoints": [],
     }
+
 
 def ask_endpoints(config: dict) -> dict:
     """Interactively collect endpoint definitions."""
@@ -49,16 +53,14 @@ def ask_endpoints(config: dict) -> dict:
         description = input("  Description (optional): ").strip() or f"{method} {path}"
         tag = input("  Tag/Category (default: 'default'): ").strip() or "default"
 
-        config["endpoints"].append({
-            "method": method,
-            "path": path,
-            "description": description,
-            "tag": tag
-        })
+        config["endpoints"].append(
+            {"method": method, "path": path, "description": description, "tag": tag}
+        )
 
         print()
 
     return config
+
 
 def main():
     """Main interactive flow."""
@@ -73,6 +75,7 @@ def main():
 
     # Output as JSON for downstream processing
     print("\n" + json.dumps(config, indent=2))
+
 
 if __name__ == "__main__":
     main()

@@ -7,10 +7,9 @@ Helps discover related documentation pages for comprehensive API extraction.
 import json
 import re
 import sys
-from pathlib import Path
-from urllib.parse import urljoin, urlparse
 from html.parser import HTMLParser
-from typing import Set, List, Dict, Optional
+from typing import Dict, List
+from urllib.parse import urljoin, urlparse
 
 
 class LinkExtractor(HTMLParser):
@@ -24,26 +23,28 @@ class LinkExtractor(HTMLParser):
         self.in_style = False
 
     def handle_starttag(self, tag, attrs):
-        if tag == 'script':
+        if tag == "script":
             self.in_script = True
-        elif tag == 'style':
+        elif tag == "style":
             self.in_style = True
-        elif tag == 'a':
+        elif tag == "a":
             for attr, value in attrs:
-                if attr == 'href' and value:
+                if attr == "href" and value:
                     # Normalize URL
                     url = urljoin(self.base_url, value)
                     if url not in [link["url"] for link in self.links]:
-                        self.links.append({
-                            "url": url,
-                            "href": value,
-                            "relative": not value.startswith(('http://', 'https://', '/'))
-                        })
+                        self.links.append(
+                            {
+                                "url": url,
+                                "href": value,
+                                "relative": not value.startswith(("http://", "https://", "/")),
+                            }
+                        )
 
     def handle_endtag(self, tag):
-        if tag == 'script':
+        if tag == "script":
             self.in_script = False
-        elif tag == 'style':
+        elif tag == "style":
             self.in_style = False
 
 
@@ -63,23 +64,23 @@ def categorize_links(links: List[Dict], base_url: str) -> Dict[str, List[Dict]]:
     base_domain = parsed_base.netloc
 
     categories = {
-        "api_docs": [],           # Core API documentation
-        "related_api": [],        # Related API/resource pages
-        "endpoints": [],          # Endpoint-specific pages
-        "guides": [],             # Getting started, guides, tutorials
-        "auth": [],               # Authentication documentation
-        "examples": [],           # Code examples, samples
-        "reference": [],          # API reference pages
-        "other": []               # Everything else
+        "api_docs": [],  # Core API documentation
+        "related_api": [],  # Related API/resource pages
+        "endpoints": [],  # Endpoint-specific pages
+        "guides": [],  # Getting started, guides, tutorials
+        "auth": [],  # Authentication documentation
+        "examples": [],  # Code examples, samples
+        "reference": [],  # API reference pages
+        "other": [],  # Everything else
     }
 
     # Patterns for categorization
-    api_keywords = r'(?:api|endpoint|method|resource|operation)'
-    auth_keywords = r'(?:auth|oauth|token|key|credential|permission)'
-    guide_keywords = r'(?:guide|tutorial|getting.*started|quickstart|intro|overview)'
-    example_keywords = r'(?:example|sample|code|snippet|demo|playground)'
-    reference_keywords = r'(?:reference|spec|schema|definition|documentation)'
-    endpoint_keywords = r'(?:endpoint|path|route|url|action)'
+    api_keywords = r"(?:api|endpoint|method|resource|operation)"
+    auth_keywords = r"(?:auth|oauth|token|key|credential|permission)"
+    guide_keywords = r"(?:guide|tutorial|getting.*started|quickstart|intro|overview)"
+    example_keywords = r"(?:example|sample|code|snippet|demo|playground)"
+    reference_keywords = r"(?:reference|spec|schema|definition|documentation)"
+    endpoint_keywords = r"(?:endpoint|path|route|url|action)"
 
     for link in links:
         url = link["url"]
@@ -87,7 +88,7 @@ def categorize_links(links: List[Dict], base_url: str) -> Dict[str, List[Dict]]:
         parsed = urlparse(url)
 
         # Skip certain URL patterns
-        if any(skip in href for skip in ['#', 'javascript:', 'mailto:', '.pdf', '.zip']):
+        if any(skip in href for skip in ["#", "javascript:", "mailto:", ".pdf", ".zip"]):
             continue
 
         # Skip non-same-domain links unless clearly API-related
@@ -125,20 +126,34 @@ def filter_crawlable_links(links: List[Dict], max_depth: int = 2) -> List[Dict]:
         path = parsed.path
 
         # Skip certain paths
-        if any(skip in path.lower() for skip in [
-            '/search', '/tag/', '/category/', '/page/',
-            '/blog/', '/news/', '/forum/', '/community/',
-            '/download', '/pricing', '/contact', '/about',
-            '/support', '/help', '/faq'
-        ]):
+        if any(
+            skip in path.lower()
+            for skip in [
+                "/search",
+                "/tag/",
+                "/category/",
+                "/page/",
+                "/blog/",
+                "/news/",
+                "/forum/",
+                "/community/",
+                "/download",
+                "/pricing",
+                "/contact",
+                "/about",
+                "/support",
+                "/help",
+                "/faq",
+            ]
+        ):
             continue
 
         # Skip anchors-only
-        if url.endswith('#') or '#' in url and url.count('/') < 3:
+        if url.endswith("#") or "#" in url and url.count("/") < 3:
             continue
 
         # Check path depth (relative to base)
-        depth = path.count('/')
+        depth = path.count("/")
         if depth <= max_depth:
             crawlable.append(link)
 
@@ -148,7 +163,7 @@ def filter_crawlable_links(links: List[Dict], max_depth: int = 2) -> List[Dict]:
 def save_links_to_file(links: Dict, output_path: str) -> bool:
     """Save categorized links to a JSON file."""
     try:
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(links, f, indent=2)
         return True
     except Exception as e:
@@ -171,10 +186,10 @@ def main():
 
     # Read HTML content
     try:
-        if html_file == '-':
+        if html_file == "-":
             content = sys.stdin.read()
         else:
-            with open(html_file, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(html_file, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
     except Exception as e:
         print(f"Error reading HTML: {e}", file=sys.stderr)
@@ -186,7 +201,7 @@ def main():
 
     # Get crawlable links
     crawlable = []
-    for category in ['api_docs', 'endpoints', 'reference', 'guides', 'auth', 'examples']:
+    for category in ["api_docs", "endpoints", "reference", "guides", "auth", "examples"]:
         crawlable.extend(categorized[category])
 
     result = {
@@ -200,11 +215,11 @@ def main():
             "auth": len(categorized["auth"]),
             "examples": len(categorized["examples"]),
             "related_api": len(categorized["related_api"]),
-            "other": len(categorized["other"])
+            "other": len(categorized["other"]),
         },
         "crawlable_count": len(crawlable),
         "crawlable_links": crawlable[:20],  # Top 20 most relevant
-        "all_categorized": categorized
+        "all_categorized": categorized,
     }
 
     # Save or print

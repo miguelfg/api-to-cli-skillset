@@ -4,11 +4,11 @@ Generate OpenAPI 3.0.0 YAML from extracted API information or interactive input.
 """
 
 import json
-import sys
-import yaml
 import subprocess
-from pathlib import Path
-from datetime import datetime
+import sys
+
+import yaml
+
 
 def create_openapi_spec(
     title: str,
@@ -18,7 +18,7 @@ def create_openapi_spec(
     description: str = "",
     contact_name: str = "",
     contact_url: str = "",
-    license_name: str = ""
+    license_name: str = "",
 ) -> dict:
     """Create a basic OpenAPI 3.0.0 specification."""
 
@@ -62,16 +62,11 @@ def create_openapi_spec(
                     "description": "Successful response",
                     "content": {
                         "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "data": {"type": "object"}
-                                }
-                            }
+                            "schema": {"type": "object", "properties": {"data": {"type": "object"}}}
                         }
-                    }
+                    },
                 }
-            }
+            },
         }
 
         # Add parameters if provided
@@ -86,20 +81,24 @@ def create_openapi_spec(
                 operation["parameters"] = []
 
                 for param in path_params:
-                    operation["parameters"].append({
-                        "name": param.get("name", "id"),
-                        "in": "path",
-                        "required": True,
-                        "schema": {"type": param.get("type", "string")}
-                    })
+                    operation["parameters"].append(
+                        {
+                            "name": param.get("name", "id"),
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": param.get("type", "string")},
+                        }
+                    )
 
                 for param in query_params:
-                    operation["parameters"].append({
-                        "name": param.get("name", "param"),
-                        "in": "query",
-                        "required": param.get("required", False),
-                        "schema": {"type": param.get("type", "string")}
-                    })
+                    operation["parameters"].append(
+                        {
+                            "name": param.get("name", "param"),
+                            "in": "query",
+                            "required": param.get("required", False),
+                            "schema": {"type": param.get("type", "string")},
+                        }
+                    )
 
             if body_params and method in ["post", "put", "patch"]:
                 operation["requestBody"] = {
@@ -114,15 +113,20 @@ def create_openapi_spec(
                                     }
                                     for i, param in enumerate(body_params)
                                 },
-                                "required": [p.get("name", f"field_{i}") for i, p in enumerate(body_params) if p.get("required")]
+                                "required": [
+                                    p.get("name", f"field_{i}")
+                                    for i, p in enumerate(body_params)
+                                    if p.get("required")
+                                ],
                             }
                         }
-                    }
+                    },
                 }
 
         spec["paths"][path][method] = operation
 
     return spec
+
 
 def validate_and_normalize_endpoints(endpoints: list) -> list:
     """Normalize and validate endpoint data."""
@@ -135,7 +139,7 @@ def validate_and_normalize_endpoints(endpoints: list) -> list:
             "method": ep.get("method", "GET").upper(),
             "description": ep.get("description", ""),
             "tag": ep.get("tag", "default"),
-            "parameters": ep.get("parameters", {})
+            "parameters": ep.get("parameters", {}),
         }
 
         if not normalized_ep["path"].startswith("/"):
@@ -159,7 +163,18 @@ def _probe_get_endpoint(base_url: str, path: str, timeout: int = 8) -> tuple[boo
     url = base_url.rstrip("/") + path
     try:
         result = subprocess.run(
-            ["curl", "-s", "-L", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", str(timeout), url],
+            [
+                "curl",
+                "-s",
+                "-L",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "--max-time",
+                str(timeout),
+                url,
+            ],
             capture_output=True,
             text=True,
             timeout=timeout + 2,
@@ -206,7 +221,9 @@ def apply_get_endpoint_quality_gates(base_url: str, endpoints: list) -> tuple[li
         if method == "GET" and "{" not in path and "}" not in path:
             report["get_probe_attempted"] += 1
             exists, status = _probe_get_endpoint(base_url, path)
-            report["details"].append({"method": method, "path": path, "status": status, "exists": exists})
+            report["details"].append(
+                {"method": method, "path": path, "status": status, "exists": exists}
+            )
             if exists:
                 report["get_probe_passed"] += 1
                 filtered.append(ep)
@@ -220,6 +237,7 @@ def apply_get_endpoint_quality_gates(base_url: str, endpoints: list) -> tuple[li
     report["pass"] = not (report["get_probe_attempted"] > 0 and report["get_probe_passed"] == 0)
     return filtered, report
 
+
 def write_openapi_yaml(spec: dict, output_path: str) -> bool:
     """Write OpenAPI spec to YAML file."""
     try:
@@ -229,6 +247,7 @@ def write_openapi_yaml(spec: dict, output_path: str) -> bool:
     except Exception as e:
         print(f"Error writing YAML: {e}", file=sys.stderr)
         return False
+
 
 def main():
     if len(sys.argv) < 2:
@@ -257,7 +276,10 @@ def main():
     # Apply GET endpoint quality gates
     endpoints, quality_report = apply_get_endpoint_quality_gates(base_url, endpoints)
     if not quality_report.get("pass", True):
-        print("Error: GET endpoint quality gate failed (no reachable GET endpoints validated)", file=sys.stderr)
+        print(
+            "Error: GET endpoint quality gate failed (no reachable GET endpoints validated)",
+            file=sys.stderr,
+        )
         print(json.dumps(quality_report, indent=2), file=sys.stderr)
         sys.exit(1)
 
@@ -270,7 +292,7 @@ def main():
         description=data.get("description", ""),
         contact_name=data.get("contact_name", ""),
         contact_url=data.get("contact_url", ""),
-        license_name=data.get("license_name", "")
+        license_name=data.get("license_name", ""),
     )
     spec["x-quality-gates"] = quality_report
 
@@ -284,6 +306,7 @@ def main():
         )
     else:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

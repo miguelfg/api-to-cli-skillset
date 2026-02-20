@@ -5,12 +5,11 @@ Uses link extraction to discover and traverse related documentation pages.
 """
 
 import json
-import sys
 import subprocess
-from pathlib import Path
-from urllib.parse import urljoin, urlparse
-from typing import Set, List, Dict, Optional
+import sys
 from datetime import datetime
+from typing import Dict, List, Optional, Set
+from urllib.parse import urlparse
 
 
 def fetch_with_curl(url: str) -> Optional[str]:
@@ -20,7 +19,7 @@ def fetch_with_curl(url: str) -> Optional[str]:
             ["curl", "-s", "-L", "-A", "Mozilla/5.0", url],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
         return result.stdout if result.returncode == 0 else None
     except FileNotFoundError:
@@ -31,13 +30,14 @@ def fetch_with_curl(url: str) -> Optional[str]:
 def extract_links_from_html(content: str, base_url: str) -> Set[str]:
     """Extract all absolute URLs from HTML content."""
     import re
+
     links = set()
 
     # Extract from href attributes
     href_pattern = r'href=["\']((?:https?://|/)[^\s"\'<>]+)'
     for match in re.finditer(href_pattern, content, re.IGNORECASE):
         href = match.group(1)
-        if href.startswith('/'):
+        if href.startswith("/"):
             # Relative URL
             parsed = urlparse(base_url)
             href = f"{parsed.scheme}://{parsed.netloc}{href}"
@@ -58,31 +58,42 @@ def filter_crawlable(links: Set[str], base_domain: str, max_depth: int = 2) -> L
             continue
 
         # Skip certain paths
-        if any(skip in parsed.path.lower() for skip in [
-            '/search', '/tag/', '/category/', '/page/',
-            '/blog/', '/news/', '/forum/', '/community/',
-            '/download', '/pricing', '/contact', '/about',
-            '/cdn-cgi', '/accounts', '/login', '/signup'
-        ]):
+        if any(
+            skip in parsed.path.lower()
+            for skip in [
+                "/search",
+                "/tag/",
+                "/category/",
+                "/page/",
+                "/blog/",
+                "/news/",
+                "/forum/",
+                "/community/",
+                "/download",
+                "/pricing",
+                "/contact",
+                "/about",
+                "/cdn-cgi",
+                "/accounts",
+                "/login",
+                "/signup",
+            ]
+        ):
             continue
 
         # Skip anchors and query params
-        if url.endswith('#'):
+        if url.endswith("#"):
             continue
 
         # Check path depth
-        depth = parsed.path.count('/')
+        depth = parsed.path.count("/")
         if depth <= max_depth:
             crawlable.append(url)
 
     return sorted(list(set(crawlable)))
 
 
-def crawl_documentation(
-    start_url: str,
-    max_pages: int = 10,
-    max_depth: int = 2
-) -> Dict:
+def crawl_documentation(start_url: str, max_pages: int = 10, max_depth: int = 2) -> Dict:
     """Crawl API documentation starting from a URL."""
     parsed = urlparse(start_url)
     base_domain = parsed.netloc
@@ -96,7 +107,7 @@ def crawl_documentation(
         "max_pages": max_pages,
         "pages": [],
         "total_endpoints": 0,
-        "total_links_found": 0
+        "total_links_found": 0,
     }
 
     page_count = 0
@@ -115,7 +126,7 @@ def crawl_documentation(
         # Fetch content
         content = fetch_with_curl(url)
         if not content:
-            print(f"  ⚠️  Failed to fetch", file=sys.stderr)
+            print("  ⚠️  Failed to fetch", file=sys.stderr)
             continue
 
         # Extract links
@@ -138,7 +149,7 @@ def crawl_documentation(
             "content_length": len(content),
             "links_found": len(links),
             "crawlable_links": len(crawlable),
-            "endpoints": endpoints
+            "endpoints": endpoints,
         }
 
         crawl_results["pages"].append(page_result)
@@ -155,10 +166,11 @@ def crawl_documentation(
 def extract_endpoints_from_content(content: str) -> List[Dict]:
     """Extract endpoints from HTML content."""
     import re
+
     endpoints = []
 
     # Pattern: HTTP method + path
-    http_pattern = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(/[^\s<\n]+)'
+    http_pattern = r"(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(/[^\s<\n]+)"
     matches = re.findall(http_pattern, content)
 
     seen = set()
@@ -166,10 +178,7 @@ def extract_endpoints_from_content(content: str) -> List[Dict]:
         key = (method, path)
         if key not in seen:
             seen.add(key)
-            endpoints.append({
-                "method": method,
-                "path": path
-            })
+            endpoints.append({"method": method, "path": path})
 
     return endpoints
 
@@ -194,7 +203,7 @@ def main():
     results = crawl_documentation(start_url, max_pages=max_pages, max_depth=max_depth)
 
     print("", file=sys.stderr)
-    print(f"✅ Crawl complete!", file=sys.stderr)
+    print("✅ Crawl complete!", file=sys.stderr)
     print(f"   Pages crawled: {results['pages_crawled']}", file=sys.stderr)
     print(f"   Endpoints found: {results['total_endpoints']}", file=sys.stderr)
     print(f"   Total links discovered: {results['total_links_found']}", file=sys.stderr)

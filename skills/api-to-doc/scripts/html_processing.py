@@ -7,7 +7,6 @@ import re
 from html import unescape
 from html.parser import HTMLParser
 
-
 _NOISE_BLOCK_PATTERN = re.compile(
     r"<(script|style|noscript|svg|iframe)[^>]*>.*?</\\1>",
     flags=re.IGNORECASE | re.DOTALL,

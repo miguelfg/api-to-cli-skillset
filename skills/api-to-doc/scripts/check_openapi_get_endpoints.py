@@ -10,7 +10,6 @@ from urllib.parse import urljoin
 
 import yaml
 
-
 EXISTENCE_STATUS_CODES = {400, 401, 403, 405, 406, 409, 415, 422, 429}
 
 
@@ -18,7 +17,18 @@ def probe(url: str, timeout: int) -> tuple[bool, int]:
     """Probe URL with curl and return (exists, status_code)."""
     try:
         result = subprocess.run(
-            ["curl", "-s", "-L", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", str(timeout), url],
+            [
+                "curl",
+                "-s",
+                "-L",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "--max-time",
+                str(timeout),
+                url,
+            ],
             capture_output=True,
             text=True,
             timeout=timeout + 2,
@@ -90,4 +100,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
