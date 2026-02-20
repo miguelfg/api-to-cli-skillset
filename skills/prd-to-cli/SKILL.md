@@ -1,6 +1,17 @@
 ---
 name: prd-to-cli
 description: Generate a production-ready Python Click CLI project from a PRD.md file about an API. Takes a Product Requirements Document describing an API client and generates a complete project structure with one Click subcommand per API resource, batch request processing (CSV/TXT), configuration management (.env), and output formatting options (JSON/CSV/XLSX). Uses askUserQuestion to gather user preferences for batch input formats, output destination, file formats, and timestamp configurations. Use when converting API documentation into an executable CLI tool.
+triggers:
+  - User provides a PRD.md and requests code generation for a Python Click CLI.
+  - User asks to scaffold a production-ready API CLI project from requirements.
+  - User completed `doc-to-prd` and wants the final generated CLI project structure.
+do_not_trigger_when:
+  mode: intent
+  conditions:
+    - Required input is missing (no PRD path/content provided).
+    - User intent is explanation, review, or discussion only (no code/project generation requested).
+    - User asks only to edit or refine PRD content (use `doc-to-prd` or direct PRD editing flow).
+    - Request is ambiguous about target artifact and user has not confirmed intent.
 ---
 
 # PRD to Python Click CLI Generator
@@ -481,3 +492,20 @@ python -m src.cli batch --input-file data/pets.csv --format json --include-times
 **References** — Configuration and specification guides for users of generated projects
 
 No assets needed (all project files generated programmatically)
+
+## Next Possible Steps
+
+Pipeline continuation from this final generation step:
+
+1. Smoke-test generated CLI commands:
+```bash
+python -m src.cli --help
+```
+2. Run project tests (if present):
+```bash
+pytest tests/ -v
+```
+3. Iterate upstream artifacts when needed:
+```bash
+/doc-to-prd @<project-name>-api.yaml
+```

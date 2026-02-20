@@ -1,6 +1,17 @@
 ---
 name: api-to-doc
 description: Convert API URLs and documentation into comprehensive OpenAPI 3.0.0 YAML specifications. Auto-detects API type (existing OpenAPI specs, Swagger, REST HTML documentation), intelligently extracts endpoints with complete parameter documentation (path, query, body), request/response examples using HTML parsing and pattern matching, and generates well-structured specifications. Falls back to Playwright or WebFetch when cURL is insufficient. Use when you have an API URL and need to create an OpenAPI YAML file for use with doc-to-prd to generate API client PRDs.
+triggers:
+  - User provides an API docs URL, API base URL, or Swagger/OpenAPI endpoint and wants an OpenAPI spec.
+  - User asks to convert HTML API docs into an OpenAPI YAML file.
+  - User is starting the API-to-CLI workflow and needs the first artifact (`<project-name>-api.yaml`).
+do_not_trigger_when:
+  mode: intent
+  conditions:
+    - Required input is missing (no API URL/docs URL/spec endpoint provided).
+    - User intent is explanation, review, or discussion only (no artifact generation requested).
+    - User already has a valid OpenAPI file and asks for a later pipeline step (PRD/CLI generation).
+    - Request is ambiguous about target artifact and user has not confirmed intent.
 ---
 
 # API to OpenAPI Generator
@@ -29,7 +40,7 @@ The **api-to-doc** skill converts API URLs into standardized OpenAPI 3.0.0 YAML 
 **Parameters:**
 - `API_URL` (required): The URL to API documentation or an endpoint serving OpenAPI/Swagger spec
   - Examples: `https://petstore.swagger.io`, `https://api.github.com/docs`, `https://api.example.com`
-- `OUTPUT_FOLDER` (optional): Directory where the generated `openapi.yaml` will be saved
+- `OUTPUT_FOLDER` (optional): Directory where the generated `<project-name>-api.yaml` file will be saved
   - Default: Current working directory
   - Example: `/api-to-doc https://api.example.com ./specs`
 
@@ -116,7 +127,7 @@ Output a valid OpenAPI 3.0.0 file with:
 
 ## Understanding the Output
 
-Generated `openapi.yaml` structure:
+Generated `<project-name>-api.yaml` structure:
 
 ```yaml
 openapi: 3.0.0
@@ -231,10 +242,10 @@ Users can enhance these in the generated OpenAPI file or in the PRD step.
 
 ## Next Steps
 
-Once you have an `openapi.yaml` file:
+Once you have a `<project-name>-api.yaml` file:
 
 ```bash
-/doc-to-prd @openapi.yaml
+/doc-to-prd @<project-name>-api.yaml
 ```
 
 This converts the OpenAPI spec into a comprehensive PRD.md with authentication, examples, and best practices—ready for the next step: `prd-to-cli`.
@@ -401,3 +412,16 @@ For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.m
 - **[doc_patterns.md](references/doc_patterns.md)** — API documentation patterns and extraction strategies (now includes parameter patterns!)
 - **[crawling_guide.md](references/crawling_guide.md)** — HTML caching, link extraction, and multi-page crawling guide
 - **[examples.md](references/examples.md)** — Real-world examples and workflow demonstrations
+
+## Next Possible Steps
+
+Run skills in sequence after this step:
+
+1. Generate PRD from your spec:
+```bash
+/doc-to-prd @<project-name>-api.yaml
+```
+2. Generate CLI project from PRD:
+```bash
+/prd-to-cli @PRD.md <output-folder>
+```
