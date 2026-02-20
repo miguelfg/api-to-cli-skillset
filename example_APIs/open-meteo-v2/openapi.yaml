@@ -1,0 +1,372 @@
+openapi: 3.0.0
+info:
+  title: API
+  version: 1.0.0
+servers:
+- url: https://api.open-meteo.com
+paths:
+  /v1/forecast:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: ukmo
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: kma
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: gem
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: access-g
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: harmonie
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: arpae
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: elevation
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: hourly
+        in: query
+        required: false
+        schema:
+          type: array
+      - name: daily
+        in: query
+        required: false
+        schema:
+          type: array
+      - name: current
+        in: query
+        required: false
+        schema:
+          type: array
+      - name: temperature_unit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: wind_speed_unit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: precipitation_unit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: timeformat
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: timezone
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: past_days
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: forecast_days
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: models
+        in: query
+        required: false
+        schema:
+          type: array
+      - name: cell_selection
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: apikey
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: relative_humidity_2m
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: dew_point_2m
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: apparent_temperature
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cloud_cover
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cloud_cover_low
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cloud_cover_mid
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cloud_cover_high
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: wind_gusts_10m
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: shortwave_radiation
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: diffuse_radiation
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: global_tilted_irradiance
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: vapour_pressure_deficit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cape
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: evapotranspiration
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: et0_fao_evapotranspiration
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: precipitation
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: snowfall
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: precipitation_probability
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: rain
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: showers
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: weather_code
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: snow_depth
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: freezing_level_height
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: visibility
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: is_day
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: sunshine_duration
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: lightning_potential
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: snowfall_height
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: precipitation_sum
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: rain_sum
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: showers_sum
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: snowfall_sum
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: precipitation_hours
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: daylight_duration
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: wind_direction_10m_dominant
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: shortwave_radiation_sum
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: generationtime_ms
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: utc_offset_seconds
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: hourly_units
+        in: query
+        required: false
+        schema:
+          type: object
+      - name: daily_units
+        in: query
+        required: false
+        schema:
+          type: object
+      - name: latitude
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: longitude
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: forecast_hours
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: past_hours
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: temporal_resolution
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: tilt
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: azimuth
+        in: query
+        required: false
+        schema:
+          type: string
+x-quality-gates:
+  enabled: true
+  base_url: https://api.open-meteo.com
+  total_input_endpoints: 1
+  get_probe_attempted: 1
+  get_probe_passed: 1
+  get_probe_failed: 0
+  filtered_out: 0
+  details:
+  - method: GET
+    path: /v1/forecast
+    status: '200'
+    exists: true
+  pass: true

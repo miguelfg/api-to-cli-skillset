@@ -1,0 +1,97 @@
+openapi: 3.0.0
+info:
+  title: API
+  version: 1.0.0
+servers:
+- url: https://flood-api.open-meteo.com
+paths:
+  /v1/flood:
+    get:
+      summary: ''
+      tags:
+      - default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: daily
+        in: query
+        required: false
+        schema:
+          type: array
+      - name: timeformat
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: past_days
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: forecast_days
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: ensemble
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: cell_selection
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: apikey
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: generationtime_ms
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: daily_units
+        in: query
+        required: false
+        schema:
+          type: object
+      - name: latitude
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: longitude
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: timezone
+        in: query
+        required: false
+        schema:
+          type: string
+x-quality-gates:
+  enabled: true
+  base_url: https://flood-api.open-meteo.com
+  total_input_endpoints: 1
+  get_probe_attempted: 1
+  get_probe_passed: 1
+  get_probe_failed: 0
+  filtered_out: 0
+  details:
+  - method: GET
+    path: /v1/flood
+    status: '200'
+    exists: true
+  pass: true
