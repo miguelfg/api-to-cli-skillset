@@ -5,25 +5,26 @@ Supports HTML documentation, Swagger/OpenAPI specs, and API reference pages.
 Fail-fast: if documentation cannot be reliably retrieved/extracted, exit non-zero.
 """
 
+import argparse
+import hashlib
 import json
 import re
 import subprocess
 import sys
-import hashlib
-import argparse
 from collections import Counter, deque
-from pathlib import Path
-from urllib.parse import urljoin, urlparse, parse_qsl
-from html.parser import HTMLParser
 from html import unescape
-from typing import Optional, Dict, List, Any
-from datetime import datetime
+from html.parser import HTMLParser
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from urllib.parse import parse_qsl, urljoin, urlparse
 
 from html_processing import html_to_markdown, truncate_lines
+
 try:
     import yaml
 except Exception:  # pragma: no cover - optional dependency guard
     yaml = None
+
 
 def get_tmp_cache_dir() -> Path:
     """Get or create the /tmp cache directory for API documentation."""
@@ -36,8 +37,8 @@ def get_html_cache_path(url: str) -> Path:
     """Generate a unique cache file path for a URL."""
     url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
     parsed = urlparse(url)
-    domain = parsed.netloc.replace('.', '_')
-    path_part = parsed.path.replace('/', '_')[:30]
+    domain = parsed.netloc.replace(".", "_")
+    path_part = parsed.path.replace("/", "_")[:30]
     filename = f"{domain}_{path_part}_{url_hash}.html"
     return get_tmp_cache_dir() / filename
 
@@ -46,7 +47,7 @@ def save_html_page(url: str, content: str) -> Optional[Path]:
     """Save HTML page to /tmp cache directory."""
     try:
         cache_path = get_html_cache_path(url)
-        with open(cache_path, 'w', encoding='utf-8') as f:
+        with open(cache_path, "w", encoding="utf-8") as f:
             f.write(content)
         return cache_path
     except Exception as e:
@@ -64,7 +65,7 @@ def fetch_url(url: str, use_cache: bool = True) -> tuple:
         cache_path = get_html_cache_path(url)
         if cache_path.exists():
             try:
-                with open(cache_path, 'r', encoding='utf-8') as f:
+                with open(cache_path, "r", encoding="utf-8") as f:
                     return f.read(), cache_path
             except Exception:
                 pass
@@ -74,7 +75,7 @@ def fetch_url(url: str, use_cache: bool = True) -> tuple:
             ["curl", "-s", "-L", "-A", "Mozilla/5.0", url],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
         if result.returncode == 0 and result.stdout:
             # Save to cache
@@ -127,10 +128,21 @@ def filter_api_doc_links(links: set[str], start_url: str, max_depth: int = 6) ->
         if parsed.query and "lang=" in parsed.query.lower():
             continue
         path_lower = parsed.path.lower()
-        if any(skip in path_lower for skip in [
-            "/search", "/blog", "/pricing", "/contact", "/about", "/support",
-            "/login", "/signup", "/dashboard", "/changelog"
-        ]):
+        if any(
+            skip in path_lower
+            for skip in [
+                "/search",
+                "/blog",
+                "/pricing",
+                "/contact",
+                "/about",
+                "/support",
+                "/login",
+                "/signup",
+                "/dashboard",
+                "/changelog",
+            ]
+        ):
             continue
         # Prefer links under the same docs subtree.
         if start_root and not parsed.path.startswith(start_root):
@@ -172,7 +184,9 @@ def discover_openapi_links(content: str, base_url: str) -> list[str]:
     return sorted(candidates)
 
 
-def fetch_first_openapi_spec(content: str, base_url: str) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+def fetch_first_openapi_spec(
+    content: str, base_url: str
+) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
     """Try discovered candidate links and return first parseable OpenAPI/Swagger spec."""
     for candidate in discover_openapi_links(content, base_url):
         spec_text, _ = fetch_url(candidate, use_cache=False)
@@ -189,7 +203,9 @@ def fetch_first_openapi_spec(content: str, base_url: str) -> tuple[Optional[Dict
                 except Exception:
                     parsed_spec = None
 
-        if isinstance(parsed_spec, dict) and any(key in parsed_spec for key in ["openapi", "swagger", "paths"]):
+        if isinstance(parsed_spec, dict) and any(
+            key in parsed_spec for key in ["openapi", "swagger", "paths"]
+        ):
             return parsed_spec, candidate
 
     return None, None
@@ -201,7 +217,11 @@ def discover_markdown_links(content: str, base_url: str) -> list[str]:
     for raw_href in re.findall(r'href=["\']([^"\']+)["\']', content, re.IGNORECASE):
         href = urljoin(base_url, raw_href)
         href_lower = href.lower()
-        if href_lower.endswith(".md") or "markdown" in href_lower or "view-as-markdown" in href_lower:
+        if (
+            href_lower.endswith(".md")
+            or "markdown" in href_lower
+            or "view-as-markdown" in href_lower
+        ):
             candidates.append(href)
     return sorted(set(candidates))
 
@@ -265,6 +285,7 @@ def crawl_and_extract_related_endpoints(
 
     return list(dedup.values()), final_base_url
 
+
 def detect_api_type(content: str, url: str) -> str:
     """Detect if content is OpenAPI, Swagger, or HTML documentation."""
     content_lower = content.lower()
@@ -277,23 +298,39 @@ def detect_api_type(content: str, url: str) -> str:
         return "swagger_json"
 
     # Check for common API documentation patterns
-    if any(pattern in content_lower for pattern in [
-        "api endpoint", "rest api", "http method",
-        "request example", "response example", "authentication"
-    ]):
+    if any(
+        pattern in content_lower
+        for pattern in [
+            "api endpoint",
+            "rest api",
+            "http method",
+            "request example",
+            "response example",
+            "authentication",
+        ]
+    ):
         return "html_docs"
 
     # Check URL hints
-    if any(pattern in url.lower() for pattern in [
-        "/api/docs", "/docs", "/swagger", "/openapi",
-        "/api-reference", "/api/reference"
-    ]):
+    if any(
+        pattern in url.lower()
+        for pattern in [
+            "/api/docs",
+            "/docs",
+            "/swagger",
+            "/openapi",
+            "/api-reference",
+            "/api/reference",
+        ]
+    ):
         return "html_docs"
 
     return "unknown"
 
+
 class HTMLContentExtractor(HTMLParser):
     """Parse HTML to extract text, code blocks, and structure."""
+
     def __init__(self):
         super().__init__()
         self.text_content = []
@@ -304,22 +341,22 @@ class HTMLContentExtractor(HTMLParser):
         self.headers = []
 
     def handle_starttag(self, tag, attrs):
-        if tag in ['code', 'pre']:
+        if tag in ["code", "pre"]:
             self.in_code = True
-            if tag == 'pre':
+            if tag == "pre":
                 self.in_pre = True
-        elif tag == 'h1':
-            self.headers.append(('h1', ''))
-        elif tag in ['h2', 'h3', 'h4', 'h5']:
-            self.headers.append((tag, ''))
+        elif tag == "h1":
+            self.headers.append(("h1", ""))
+        elif tag in ["h2", "h3", "h4", "h5"]:
+            self.headers.append((tag, ""))
 
     def handle_endtag(self, tag):
-        if tag in ['code', 'pre']:
+        if tag in ["code", "pre"]:
             self.in_code = False
             if self.current_code.strip():
                 self.code_blocks.append(self.current_code.strip())
                 self.current_code = ""
-            if tag == 'pre':
+            if tag == "pre":
                 self.in_pre = False
 
     def handle_data(self, data):
@@ -327,6 +364,7 @@ class HTMLContentExtractor(HTMLParser):
             self.current_code += data
         else:
             self.text_content.append(data)
+
 
 def extract_endpoints_from_html(content: str) -> list:
     """Extract endpoints from HTML documentation with improved patterns."""
@@ -374,72 +412,84 @@ def extract_endpoints_from_html(content: str) -> list:
         return "/" + "/".join(normalized_parts)
 
     # Pattern 1: Code blocks with HTTP methods (most reliable)
-    http_pattern = r'(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(/[^\s<\n]+)'
+    http_pattern = r"(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(/[^\s<\n]+)"
     matches = re.findall(http_pattern, content)
     for method, path in matches:
         path = normalize_endpoint_path(path)
-        endpoints.append({
-            "method": method,
-            "path": path,
-            "description": "",
-            "parameters": [],
-            "request_examples": [],
-            "response_examples": []
-        })
+        endpoints.append(
+            {
+                "method": method,
+                "path": path,
+                "description": "",
+                "parameters": [],
+                "request_examples": [],
+                "response_examples": [],
+            }
+        )
 
     # Pattern 2: API endpoints in headers or list items
-    endpoint_pattern = r'<(?:h[2-4]|li|td)>.*?(GET|POST|PUT|DELETE|PATCH)\s+(/[^\s<]+).*?</(?:h[2-4]|li|td)>'
+    endpoint_pattern = (
+        r"<(?:h[2-4]|li|td)>.*?(GET|POST|PUT|DELETE|PATCH)\s+(/[^\s<]+).*?</(?:h[2-4]|li|td)>"
+    )
     matches = re.findall(endpoint_pattern, content, re.IGNORECASE | re.DOTALL)
     for method, path in matches:
         path = normalize_endpoint_path(path)
-        endpoints.append({
-            "method": method.upper(),
-            "path": path,
-            "description": "",
-            "parameters": [],
-            "request_examples": [],
-            "response_examples": []
-        })
+        endpoints.append(
+            {
+                "method": method.upper(),
+                "path": path,
+                "description": "",
+                "parameters": [],
+                "request_examples": [],
+                "response_examples": [],
+            }
+        )
 
     # Pattern 3: Explicit endpoint declarations without method.
     # Example: "The API endpoint /v1/forecast accepts ..."
-    endpoint_only_pattern = r'api\s+endpoint[^<\n]*?(/v\d+/[a-zA-Z0-9_/\-]+)'
+    endpoint_only_pattern = r"api\s+endpoint[^<\n]*?(/v\d+/[a-zA-Z0-9_/\-]+)"
     for path in re.findall(endpoint_only_pattern, content, re.IGNORECASE):
         path = normalize_endpoint_path(path)
-        endpoints.append({
-            "method": "GET",
-            "path": path,
-            "description": "",
-            "parameters": [],
-            "request_examples": [],
-            "response_examples": []
-        })
+        endpoints.append(
+            {
+                "method": "GET",
+                "path": path,
+                "description": "",
+                "parameters": [],
+                "request_examples": [],
+                "response_examples": [],
+            }
+        )
 
     # Pattern 3b: Endpoint wrapped in markup (e.g., "<mark>/v1/flood</mark>").
-    endpoint_mark_pattern = r'api\s+endpoint.*?<mark>\s*(/v\d+/[a-zA-Z0-9_/\-]+)\s*</mark>'
+    endpoint_mark_pattern = r"api\s+endpoint.*?<mark>\s*(/v\d+/[a-zA-Z0-9_/\-]+)\s*</mark>"
     for path in re.findall(endpoint_mark_pattern, content, re.IGNORECASE | re.DOTALL):
         path = normalize_endpoint_path(path)
-        endpoints.append({
-            "method": "GET",
-            "path": path,
-            "description": "",
-            "parameters": [],
-            "request_examples": [],
-            "response_examples": []
-        })
+        endpoints.append(
+            {
+                "method": "GET",
+                "path": path,
+                "description": "",
+                "parameters": [],
+                "request_examples": [],
+                "response_examples": [],
+            }
+        )
 
     # Pattern 4: Absolute API URLs in forms/links.
     absolute_api_pattern = r'https?://api[.\-][^"\'<>\s]+(/v\d+/[a-zA-Z0-9_/\-]+)'
     for path in re.findall(absolute_api_pattern, content, re.IGNORECASE):
         path = normalize_endpoint_path(path)
-        endpoints.append({
-            "method": "GET",
-            "path": path,
-            "description": "",
-            "parameters": [],
-            "request_examples": [],
-            "response_examples": []
-        })
+        endpoints.append(
+            {
+                "method": "GET",
+                "path": path,
+                "description": "",
+                "parameters": [],
+                "request_examples": [],
+                "response_examples": [],
+            }
+        )
 
     # Deduplicate
     seen = set()
@@ -452,13 +502,10 @@ def extract_endpoints_from_html(content: str) -> list:
 
     return unique
 
+
 def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[str, List[Dict]]:
     """Extract query, path, and body parameters for a specific endpoint."""
-    params = {
-        "path": [],
-        "query": [],
-        "body": []
-    }
+    params = {"path": [], "query": [], "body": []}
 
     def _query_param_exists(name: str) -> bool:
         return any(p["name"] == name for p in params["query"])
@@ -466,11 +513,13 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
     def _add_query_param(name: str, param_type: str = "string", required: bool = False):
         if not name or _query_param_exists(name):
             return
-        params["query"].append({
-            "name": name,
-            "type": param_type,
-            "required": required,
-        })
+        params["query"].append(
+            {
+                "name": name,
+                "type": param_type,
+                "required": required,
+            }
+        )
 
     def _infer_type(type_text: str) -> str:
         t = (type_text or "").strip().lower()
@@ -487,46 +536,48 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
         return "string"
 
     # Extract path parameters (e.g., {id}, :id, [id])
-    path_param_pattern = r'[{:\[]([a-zA-Z_][a-zA-Z0-9_]*)[}\]:]'
+    path_param_pattern = r"[{:\[]([a-zA-Z_][a-zA-Z0-9_]*)[}\]:]"
     path_params = re.findall(path_param_pattern, endpoint_path)
     for param in path_params:
-        params["path"].append({
-            "name": param,
-            "type": "string",
-            "required": True
-        })
+        params["path"].append({"name": param, "type": "string", "required": True})
 
     # Look for parameter documentation patterns near the endpoint
-    context_pattern = r'(?:' + re.escape(endpoint_path) + r'|' + endpoint_path.split('/')[1] + r').*?(?=(?:GET|POST|PUT|DELETE|PATCH|####|###|##|$))'
+    context_pattern = (
+        r"(?:"
+        + re.escape(endpoint_path)
+        + r"|"
+        + endpoint_path.split("/")[1]
+        + r").*?(?=(?:GET|POST|PUT|DELETE|PATCH|####|###|##|$))"
+    )
     context = re.search(context_pattern, content, re.IGNORECASE | re.DOTALL)
 
     if context:
         context_text = context.group(0)
 
         # Query parameters
-        query_pattern = r'(?:Query\s+Parameters|Query\s+String|Optional\s+Parameters|Parameters)[\s:]*\n(.*?)(?=(?:Request|Response|Request Body|Status|####|###|##|$))'
+        query_pattern = r"(?:Query\s+Parameters|Query\s+String|Optional\s+Parameters|Parameters)[\s:]*\n(.*?)(?=(?:Request|Response|Request Body|Status|####|###|##|$))"
         query_match = re.search(query_pattern, context_text, re.IGNORECASE | re.DOTALL)
         if query_match:
             query_text = query_match.group(1)
             # Find parameter names in the context
-            param_names = re.findall(r'(?:param|parameter|query|option)[\s:]*["\']?([a-zA-Z_][a-zA-Z0-9_]*)', query_text, re.IGNORECASE)
+            param_names = re.findall(
+                r'(?:param|parameter|query|option)[\s:]*["\']?([a-zA-Z_][a-zA-Z0-9_]*)',
+                query_text,
+                re.IGNORECASE,
+            )
             for name in param_names:
                 if name not in [p["name"] for p in params["query"]]:
                     _add_query_param(name, "string", False)
 
         # Request body parameters
-        body_pattern = r'(?:Request\s+Body|Body\s+Parameters|Body|Payload)[\s:]*\n(.*?)(?=(?:Response|Status|####|###|##|$))'
+        body_pattern = r"(?:Request\s+Body|Body\s+Parameters|Body|Payload)[\s:]*\n(.*?)(?=(?:Response|Status|####|###|##|$))"
         body_match = re.search(body_pattern, context_text, re.IGNORECASE | re.DOTALL)
         if body_match:
             body_text = body_match.group(1)
             param_names = re.findall(r'["\']?([a-zA-Z_][a-zA-Z0-9_]*)["\']?\s*(?::|=)', body_text)
             for name in param_names:
                 if name not in [p["name"] for p in params["body"]]:
-                    params["body"].append({
-                        "name": name,
-                        "type": "string",
-                        "required": False
-                    })
+                    params["body"].append({"name": name, "type": "string", "required": False})
 
         # Parse concrete API URL examples and query strings in endpoint context.
         decoded_context = unescape(context_text)
@@ -542,15 +593,17 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
                 pass
 
         # Handle inline URL fragments like &hourly=temperature_2m in docs text.
-        for key in re.findall(r'(?:\?|&)([a-zA-Z_][a-zA-Z0-9_\-]*)=', decoded_context):
+        for key in re.findall(r"(?:\?|&)([a-zA-Z_][a-zA-Z0-9_\-]*)=", decoded_context):
             _add_query_param(key, "string", False)
 
     # Parse common API docs parameter tables:
     # <tr><th>param</th><td>String array</td><td>No</td>...</tr>
     table_row_pattern = (
-        r'<tr[^>]*>\s*<th[^>]*>(.*?)</th>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>'
+        r"<tr[^>]*>\s*<th[^>]*>(.*?)</th>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>"
     )
-    for raw_name, raw_type, raw_required in re.findall(table_row_pattern, content, re.IGNORECASE | re.DOTALL):
+    for raw_name, raw_type, raw_required in re.findall(
+        table_row_pattern, content, re.IGNORECASE | re.DOTALL
+    ):
         name = re.sub(r"<[^>]+>", " ", unescape(raw_name)).strip().lower()
         if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", name):
             continue
@@ -571,15 +624,15 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
 
     return params
 
+
 def extract_examples_from_content(content: str, endpoint_path: str) -> Dict[str, List[str]]:
     """Extract request and response examples for an endpoint."""
-    examples = {
-        "request": [],
-        "response": []
-    }
+    examples = {"request": [], "response": []}
 
     # Find context around the endpoint
-    context_pattern = r'(?:' + re.escape(endpoint_path) + r').*?(?=(?:GET|POST|PUT|DELETE|PATCH|###|##|$))'
+    context_pattern = (
+        r"(?:" + re.escape(endpoint_path) + r").*?(?=(?:GET|POST|PUT|DELETE|PATCH|###|##|$))"
+    )
     context = re.search(context_pattern, content, re.IGNORECASE | re.DOTALL)
 
     if not context:
@@ -588,32 +641,33 @@ def extract_examples_from_content(content: str, endpoint_path: str) -> Dict[str,
     context_text = context.group(0)
 
     # Extract request examples (JSON code blocks)
-    request_pattern = r'(?:Request\s+Example|Example\s+Request|Request)[\s:]*\n```(?:json|javascript|js)?\s*(.*?)```'
+    request_pattern = r"(?:Request\s+Example|Example\s+Request|Request)[\s:]*\n```(?:json|javascript|js)?\s*(.*?)```"
     request_matches = re.findall(request_pattern, context_text, re.IGNORECASE | re.DOTALL)
     examples["request"].extend(request_matches)
 
     # Extract response examples
-    response_pattern = r'(?:Response\s+Example|Example\s+Response|Response)[\s:]*\n```(?:json|javascript|js)?\s*(.*?)```'
+    response_pattern = r"(?:Response\s+Example|Example\s+Response|Response)[\s:]*\n```(?:json|javascript|js)?\s*(.*?)```"
     response_matches = re.findall(response_pattern, context_text, re.IGNORECASE | re.DOTALL)
     examples["response"].extend(response_matches)
 
     # Fallback: extract JSON objects from <pre> or <code> tags
     if not examples["request"] or not examples["response"]:
-        json_pattern = r'(?:<pre>|<code>)(.*?)(?:</pre>|</code>)'
+        json_pattern = r"(?:<pre>|<code>)(.*?)(?:</pre>|</code>)"
         json_blocks = re.findall(json_pattern, context_text, re.DOTALL)
         for block in json_blocks:
-            if '{' in block:
+            if "{" in block:
                 # Try to parse as JSON
                 try:
                     json.loads(block)
-                    if "request" in context_text[:context_text.find(block)].lower():
+                    if "request" in context_text[: context_text.find(block)].lower():
                         examples["request"].append(block.strip())
                     else:
                         examples["response"].append(block.strip())
-                except:
+                except json.JSONDecodeError:
                     pass
 
     return examples
+
 
 def extract_base_url(url: str, content: str) -> str:
     """Extract base URL from documentation or use the fetched URL."""
@@ -625,9 +679,9 @@ def extract_base_url(url: str, content: str) -> str:
     # - https://api.open-meteo.com/v1/forecast
     # - https://flood-api.open-meteo.com/v1/flood
     api_url_match = re.search(
-        r'(https?://[a-zA-Z0-9.\-]*api[a-zA-Z0-9.\-]*)(?:/v\d+/[a-zA-Z0-9_/\-]*)?',
+        r"(https?://[a-zA-Z0-9.\-]*api[a-zA-Z0-9.\-]*)(?:/v\d+/[a-zA-Z0-9_/\-]*)?",
         content,
-        re.IGNORECASE
+        re.IGNORECASE,
     )
     if api_url_match:
         return api_url_match.group(1).rstrip("/")
@@ -637,21 +691,20 @@ def extract_base_url(url: str, content: str) -> str:
         r'base\s*(?:url|uri|endpoint)[\s:]*["\']?(https?://[^\s"\'<]+)',
         r'api\s*endpoint[\s:]*["\']?(https?://[^\s"\'<]+)',
         r'server[\s:]*["\']?(https?://[^\s"\'<]+)',
-        r'https?://[^\s"\'<]+/api(?:/v\d+)?'
+        r'https?://[^\s"\'<]+/api(?:/v\d+)?',
     ]
 
     for pattern in patterns:
         match = re.search(pattern, content, re.IGNORECASE)
         if match:
-            url_match = match.group(0) if pattern.startswith('https') else match.group(1)
+            url_match = match.group(0) if pattern.startswith("https") else match.group(1)
             return url_match.rstrip("/")
 
     return base
 
+
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Fetch API docs and extract endpoint information."
-    )
+    parser = argparse.ArgumentParser(description="Fetch API docs and extract endpoint information.")
     parser.add_argument("url", help="API docs URL")
     parser.add_argument(
         "--no-cache",
@@ -712,7 +765,7 @@ def main():
                 "saved": cache_path is not None,
                 "path": str(cache_path) if cache_path else None,
                 "markdown_path": str(markdown_cache_path) if markdown_cache_path else None,
-                "cache_dir": str(get_tmp_cache_dir())
+                "cache_dir": str(get_tmp_cache_dir()),
             },
             "extraction_notes": [
                 "Linked OpenAPI/Swagger schema discovered and prioritized over doc scraping"
@@ -732,8 +785,8 @@ def main():
             "saved": cache_path is not None,
             "path": str(cache_path) if cache_path else None,
             "markdown_path": str(markdown_cache_path) if markdown_cache_path else None,
-            "cache_dir": str(get_tmp_cache_dir())
-        }
+            "cache_dir": str(get_tmp_cache_dir()),
+        },
     }
 
     if api_type == "openapi" or api_type == "swagger_json":
@@ -753,7 +806,9 @@ def main():
             result["preferred_doc_url"] = markdown_source_url
         else:
             extraction_source = normalized_markdown if args.prefer_md_extraction else content
-            result["preferred_doc_source"] = "normalized_markdown" if args.prefer_md_extraction else "html"
+            result["preferred_doc_source"] = (
+                "normalized_markdown" if args.prefer_md_extraction else "html"
+            )
         endpoints = extract_endpoints_from_html(extraction_source)
         base_url = extract_base_url(url, extraction_source)
 
@@ -781,8 +836,12 @@ def main():
 
         # Extract detailed information for each endpoint
         for endpoint in endpoints:
-            endpoint["parameters"] = extract_parameters_for_endpoint(extraction_source, endpoint["path"])
-            endpoint["examples"] = extract_examples_from_content(extraction_source, endpoint["path"])
+            endpoint["parameters"] = extract_parameters_for_endpoint(
+                extraction_source, endpoint["path"]
+            )
+            endpoint["examples"] = extract_examples_from_content(
+                extraction_source, endpoint["path"]
+            )
 
         result["endpoints"] = endpoints
         result["base_url"] = base_url
@@ -794,7 +853,7 @@ def main():
             "HTML page saved to cache for link extraction",
             "Optional HTML-to-Markdown preprocessing available for long pages",
             "Automatic multi-page crawl used for sparse top-level docs",
-            "Fail-fast enabled when endpoint extraction is empty"
+            "Fail-fast enabled when endpoint extraction is empty",
         ]
     else:
         print(
@@ -805,6 +864,7 @@ def main():
         sys.exit(1)
 
     print(json.dumps(result, indent=2))
+
 
 if __name__ == "__main__":
     main()

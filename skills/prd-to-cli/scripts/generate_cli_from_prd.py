@@ -10,15 +10,12 @@ Parses PRD.md to extract API resources and endpoints, then generates:
 - Client library boilerplate
 """
 
-import json
 import re
-import os
 import shutil
 import subprocess
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional
-import textwrap
+from pathlib import Path
+from typing import Dict, List
 
 
 class PRDParser:
@@ -48,26 +45,26 @@ class PRDParser:
 
     def _extract_endpoint_inventory_paths(self) -> List[str]:
         """Extract endpoint paths from markdown bullets like - `/v1/forecast` (with optional trailing text)."""
-        return re.findall(r'^\s*-\s*`(/[^`]+)`(?:\s+—.*)?\s*$', self.content, re.MULTILINE)
+        return re.findall(r"^\s*-\s*`(/[^`]+)`(?:\s+—.*)?\s*$", self.content, re.MULTILINE)
 
     def _extract_api_info(self):
         """Extract API title, version, base URL."""
         # Extract title
-        title_match = re.search(r'^#\s+(.+?)$', self.content, re.MULTILINE)
+        title_match = re.search(r"^#\s+(.+?)$", self.content, re.MULTILINE)
         if title_match:
             self.api_info["title"] = title_match.group(1)
 
         # Extract version
-        version_match = re.search(r'\*\*API Version:\*\*\s+(.+?)$', self.content, re.MULTILINE)
+        version_match = re.search(r"\*\*API Version:\*\*\s+(.+?)$", self.content, re.MULTILINE)
         if version_match:
             self.api_info["version"] = version_match.group(1)
 
         # Extract base URL from multiple PRD styles
         base_url_patterns = [
-            r'\*\*Base URL:\*\*\s+`(.+?)`',       # **Base URL:** `https://...`
-            r'\*\*Base URL:\*\*\s+(.+?)$',        # **Base URL:** https://...
-            r'`base_url`:\s*`(.+?)`',             # - `base_url`: `https://...`
-            r'base_url\s*=\s*(https?://\S+)',     # base_url=https://...
+            r"\*\*Base URL:\*\*\s+`(.+?)`",  # **Base URL:** `https://...`
+            r"\*\*Base URL:\*\*\s+(.+?)$",  # **Base URL:** https://...
+            r"`base_url`:\s*`(.+?)`",  # - `base_url`: `https://...`
+            r"base_url\s*=\s*(https?://\S+)",  # base_url=https://...
         ]
         for pattern in base_url_patterns:
             match = re.search(pattern, self.content, re.MULTILINE)
@@ -103,7 +100,9 @@ class PRDParser:
                 parts = [p for p in path.split("/") if p]
                 if not parts:
                     continue
-                if self._normalize_resource_token(parts[0]) == self._normalize_resource_token(resource_name):
+                if self._normalize_resource_token(parts[0]) == self._normalize_resource_token(
+                    resource_name
+                ):
                     candidates.append(path)
 
             if candidates:
@@ -122,7 +121,7 @@ class PRDParser:
         # Preferred format in generated PRDs:
         # - Resources: `airquality, archive, forecast`
         resources_line = re.search(
-            r'(?:\*\*Resources:\*\*|Resources:)\s*`([^`]+)`',
+            r"(?:\*\*Resources:\*\*|Resources:)\s*`([^`]+)`",
             self.content,
             re.IGNORECASE,
         )
@@ -140,7 +139,7 @@ class PRDParser:
                 return
 
         # Prefer explicit resource headers: "### <Name> Resource"
-        explicit_pattern = r'^###\s+([A-Z][A-Za-z]+)\s+Resource$'
+        explicit_pattern = r"^###\s+([A-Z][A-Za-z]+)\s+Resource$"
         matches = list(re.finditer(explicit_pattern, self.content, re.MULTILINE))
 
         for match in matches:
@@ -155,7 +154,7 @@ class PRDParser:
         """Extract endpoints for a specific resource."""
         endpoints = []
         # Match #### endpoint patterns (e.g., #### 1. Get User by ID)
-        endpoint_pattern = r'^####\s+\d+\.\s+(.+?)$'
+        endpoint_pattern = r"^####\s+\d+\.\s+(.+?)$"
         for match in re.finditer(endpoint_pattern, self.content, re.MULTILINE):
             endpoint_desc = match.group(1)
             endpoints.append({"description": endpoint_desc})
@@ -279,10 +278,10 @@ from src.config import Config
 @click.pass_context
 def cli(ctx, config, verbose):
     """
-    {self.project_name.replace('_', ' ').title()} - API CLI Client
+    {self.project_name.replace("_", " ").title()} - API CLI Client
 
-    API: {self.parsed_prd['api_info'].get('title', 'Unknown')}
-    Version: {self.parsed_prd['api_info'].get('version', '1.0')}
+    API: {self.parsed_prd["api_info"].get("title", "Unknown")}
+    Version: {self.parsed_prd["api_info"].get("version", "1.0")}
     """
     ctx.ensure_object(dict)
     ctx.obj['config'] = Config(config_path=config)
@@ -675,8 +674,8 @@ class BatchProcessor:
 
     def _generate_env_file(self, project_path: Path):
         """Generate .env.example file."""
-        env_content = f'''# API Configuration
-base_url={self.parsed_prd['api_info'].get('base_url', 'https://api.example.com')}
+        env_content = f"""# API Configuration
+base_url={self.parsed_prd["api_info"].get("base_url", "https://api.example.com")}
 api_key=your_api_key_here
 api_token=your_bearer_token_here
 
@@ -692,7 +691,7 @@ batch_output_path=./output
 # Logging
 log_level=INFO
 verbose=false
-'''
+"""
 
         (project_path / ".env.example").write_text(env_content)
 
@@ -729,8 +728,7 @@ verbose=false
         dev_dependencies_block = ",\n    ".join(dev_dependencies)
 
         pyproject = (
-            template
-            .replace("{PROJECT_NAME}", safe_project_name)
+            template.replace("{PROJECT_NAME}", safe_project_name)
             .replace("{DESCRIPTION}", description)
             .replace("{DEPENDENCIES}", dependencies_block)
             .replace("{DEV_DEPENDENCIES}", dev_dependencies_block)
@@ -747,7 +745,9 @@ verbose=false
         resource_help_lines = []
         for resource in resource_names[:8]:
             target = f"{resource}-list"
-            resource_help_lines.append(f"\t@echo \"  make {target:<12} Example: uv run $(PROJECT_NAME) {resource} list\"")
+            resource_help_lines.append(
+                f'\t@echo "  make {target:<12} Example: uv run $(PROJECT_NAME) {resource} list"'
+            )
             resource_targets.extend(
                 [
                     f"{target}:",
@@ -764,7 +764,9 @@ verbose=false
             "HTTP_LIBRARY": self.http_library,
             "TIMESTAMP_FORMAT": "%Y%m%d_%H%M%S",
             "ENV_PREFIX": re.sub(r"[^A-Z0-9]", "_", self.project_name.upper()),
-            "RESOURCE_HELP_LINES": "\n".join(resource_help_lines) if resource_help_lines else "\t@echo \"  (no resource groups discovered from PRD)\"",
+            "RESOURCE_HELP_LINES": "\n".join(resource_help_lines)
+            if resource_help_lines
+            else '\t@echo "  (no resource groups discovered from PRD)"',
             "RESOURCE_TARGETS": "\n".join(resource_targets).rstrip(),
         }
 
@@ -791,15 +793,11 @@ verbose=false
         for resource_name, resource_data in self.parsed_prd["resources"].items():
             self._generate_resource_command_file(project_path, resource_name, resource_data)
 
-    def _generate_resource_command_file(self, project_path: Path, resource_name: str, resource_data: Dict):
+    def _generate_resource_command_file(
+        self, project_path: Path, resource_name: str, resource_data: Dict
+    ):
         """Generate a command file for a specific resource."""
-        endpoints = resource_data.get("endpoints", [])
         resource_path = resource_data.get("path", f"/{resource_name}")
-        endpoint_options = "\n    ".join(
-            f'@{resource_name}_group.command()\n    def {i+1}_{ep["description"].lower().replace(" ", "_")}():\n        """' +
-            ep["description"] + '"""\n        pass'
-            for i, ep in enumerate(endpoints[:5])  # Limit to first 5 endpoints per resource
-        )
 
         command_content = f'''"""
 CLI commands for {resource_name} resource.
@@ -881,7 +879,9 @@ def create(ctx, data):
                 if result.returncode == 0:
                     print(f"✅ Post-process: {label}")
                 else:
-                    print(f"⚠️ Post-process skipped/failed ({label}): {result.stderr.strip() or result.stdout.strip()}")
+                    print(
+                        f"⚠️ Post-process skipped/failed ({label}): {result.stderr.strip() or result.stdout.strip()}"
+                    )
             except Exception as exc:
                 print(f"⚠️ Post-process skipped ({label}): {exc}")
 

@@ -1,4 +1,4 @@
-.PHONY: help install install-dev format lint lint-fix check test validate clean \
+.PHONY: help install install-dev ensure-dev-deps format lint lint-fix check test validate clean \
 	check-clean-git tag tag-patch tag-minor tag-major tag-push
 
 SRC_DIRS := skills
@@ -31,7 +31,10 @@ install:
 install-dev:
 	uv sync --all-extras
 
-format:
+ensure-dev-deps:
+	@uv sync --all-extras
+
+format: ensure-dev-deps
 	@if uv run ruff --version >/dev/null 2>&1; then \
 		uv run ruff format $(SRC_DIRS); \
 	elif uv run black --version >/dev/null 2>&1; then \
@@ -42,14 +45,14 @@ format:
 		exit 1; \
 	fi
 
-lint:
+lint: ensure-dev-deps
 	@if uv run ruff --version >/dev/null 2>&1; then \
 		uv run ruff check $(SRC_DIRS); \
 	else \
 		uv run python -m py_compile $(PY_FILES); \
 	fi
 
-lint-fix:
+lint-fix: ensure-dev-deps
 	@if uv run ruff --version >/dev/null 2>&1; then \
 		uv run ruff check $(SRC_DIRS) --fix; \
 		uv run ruff format $(SRC_DIRS); \
@@ -64,7 +67,7 @@ lint-fix:
 check: format lint
 	@uv run python -m py_compile $(PY_FILES)
 
-test:
+test: ensure-dev-deps
 	@if [ -d tests ]; then \
 		if uv run pytest --version >/dev/null 2>&1; then \
 			uv run pytest tests -v; \
