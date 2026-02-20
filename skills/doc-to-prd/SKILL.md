@@ -129,24 +129,27 @@ Don't:
 
 ## PRD Template Structure
 
-The skill generates `{project_name}_PRD.md` files following a comprehensive template that includes all necessary sections for API client development. See the template in `references/PRD_template.md`.
+The skill generates `{project_name}_PRD.md` files using a baseline template suitable for fast, consistent outputs. Use `references/PRD_template_basic.md` as the default generation template.
+
+For expanded outputs with deeper guidance, use `references/PRD_template.md`.
 
 ### PRD Sections
 
-1. **Introduction** - Overview, purpose, target audience, key features
-2. **Installation** - System requirements, installation methods, dependencies, verification
-3. **Configuration** - Environment variables, config files, configuration management commands
-4. **Authentication** - API key setup, authentication methods, error handling, best practices
-5. **Endpoint Reference** - Resource documentation with method, path, parameters, response, examples
-   - Subsections for each API resource (Users, Posts, Comments, etc.)
-   - Standard CRUD operations (List, Get, Create, Update, Delete)
-6. **Input/Output Examples** - Single request and batch processing examples with outputs in various formats
-7. **Caching** - Overview, configuration, management commands, strategy, best practices
-8. **Rate Limiting** - API limits, client-side rate limiting, configuration, example handling
-9. **Error Handling** - Error classification, response format, common errors with solutions
-10. **Logging** - Log levels, configuration, log format, verbose mode, best practices
-11. **Best Click Practices** - CLI design principles, standard options, error messages, performance
-12. **Makefile & Project Management** - Project structure, Makefile commands, uvicorn integration
+Core sections:
+1. **Introduction** - Overview, purpose, audience, key capabilities
+2. **Installation** - Requirements and setup steps
+3. **Configuration** - Environment variables and config strategy
+4. **Authentication** - Auth method(s), setup, and failure modes
+5. **Endpoint Reference** - Resource-by-resource endpoint details
+6. **CLI Design** - Command groups and standard options
+7. **Input/Output Examples** - Typical request/response and output formatting
+
+Nice-to-have sections:
+1. **Caching** - Strategy, TTL, and cache controls
+2. **Rate Limiting** - Limits, retries, and backoff policy
+3. **Error Handling** - Error classes and user-facing guidance
+4. **Logging & Observability** - Log levels and debugging behavior
+5. **Makefile & Project Management** - Local workflows and automation
 
 ### Template Customization
 
@@ -456,6 +459,7 @@ After generating `{project_name}_PRD.md`, customize for your API:
 
 ## References
 
+- **[PRD_template_basic.md](references/PRD_template_basic.md)** - Baseline template used by `doc-to-prd`
 - **[PRD_template.md](references/PRD_template.md)** - Complete PRD template with all sections
 - Related skills: `prd-to-cli`, `api-to-doc`
 
