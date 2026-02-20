@@ -12,8 +12,9 @@ import sys
 import hashlib
 import argparse
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, parse_qsl
 from html.parser import HTMLParser
+from html import unescape
 from typing import Optional, Dict, List, Any
 from datetime import datetime
 
@@ -187,6 +188,18 @@ def extract_endpoints_from_html(content: str) -> list:
             "response_examples": []
         })
 
+    # Pattern 3b: Endpoint wrapped in markup (e.g., "<mark>/v1/flood</mark>").
+    endpoint_mark_pattern = r'api\s+endpoint.*?<mark>\s*(/v\d+/[a-zA-Z0-9_/\-]+)\s*</mark>'
+    for path in re.findall(endpoint_mark_pattern, content, re.IGNORECASE | re.DOTALL):
+        endpoints.append({
+            "method": "GET",
+            "path": path,
+            "description": "",
+            "parameters": [],
+            "request_examples": [],
+            "response_examples": []
+        })
+
     # Pattern 4: Absolute API URLs in forms/links.
     absolute_api_pattern = r'https?://api[.\-][^"\'<>\s]+(/v\d+/[a-zA-Z0-9_/\-]+)'
     for path in re.findall(absolute_api_pattern, content, re.IGNORECASE):
@@ -218,6 +231,32 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
         "body": []
     }
 
+    def _query_param_exists(name: str) -> bool:
+        return any(p["name"] == name for p in params["query"])
+
+    def _add_query_param(name: str, param_type: str = "string", required: bool = False):
+        if not name or _query_param_exists(name):
+            return
+        params["query"].append({
+            "name": name,
+            "type": param_type,
+            "required": required,
+        })
+
+    def _infer_type(type_text: str) -> str:
+        t = (type_text or "").strip().lower()
+        if any(k in t for k in ["int", "integer"]):
+            return "integer"
+        if any(k in t for k in ["float", "double", "decimal", "number"]):
+            return "number"
+        if "bool" in t:
+            return "boolean"
+        if "array" in t or "list" in t:
+            return "array"
+        if "object" in t or "json" in t:
+            return "object"
+        return "string"
+
     # Extract path parameters (e.g., {id}, :id, [id])
     path_param_pattern = r'[{:\[]([a-zA-Z_][a-zA-Z0-9_]*)[}\]:]'
     path_params = re.findall(path_param_pattern, endpoint_path)
@@ -244,11 +283,7 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
             param_names = re.findall(r'(?:param|parameter|query|option)[\s:]*["\']?([a-zA-Z_][a-zA-Z0-9_]*)', query_text, re.IGNORECASE)
             for name in param_names:
                 if name not in [p["name"] for p in params["query"]]:
-                    params["query"].append({
-                        "name": name,
-                        "type": "string",
-                        "required": False
-                    })
+                    _add_query_param(name, "string", False)
 
         # Request body parameters
         body_pattern = r'(?:Request\s+Body|Body\s+Parameters|Body|Payload)[\s:]*\n(.*?)(?=(?:Response|Status|####|###|##|$))'
@@ -263,6 +298,47 @@ def extract_parameters_for_endpoint(content: str, endpoint_path: str) -> Dict[st
                         "type": "string",
                         "required": False
                     })
+
+        # Parse concrete API URL examples and query strings in endpoint context.
+        decoded_context = unescape(context_text)
+        absolute_url_pattern = r'https?://api[.\-][^"\'<>\s]+'
+        for full_url in re.findall(absolute_url_pattern, decoded_context, re.IGNORECASE):
+            try:
+                parsed_url = urlparse(full_url)
+                if parsed_url.path != endpoint_path:
+                    continue
+                for key, _ in parse_qsl(parsed_url.query, keep_blank_values=True):
+                    _add_query_param(key, "string", False)
+            except Exception:
+                pass
+
+        # Handle inline URL fragments like &hourly=temperature_2m in docs text.
+        for key in re.findall(r'(?:\?|&)([a-zA-Z_][a-zA-Z0-9_\-]*)=', decoded_context):
+            _add_query_param(key, "string", False)
+
+    # Parse common API docs parameter tables:
+    # <tr><th>param</th><td>String array</td><td>No</td>...</tr>
+    table_row_pattern = (
+        r'<tr[^>]*>\s*<th[^>]*>(.*?)</th>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>'
+    )
+    for raw_name, raw_type, raw_required in re.findall(table_row_pattern, content, re.IGNORECASE | re.DOTALL):
+        name = re.sub(r"<[^>]+>", " ", unescape(raw_name)).strip().lower()
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", name):
+            continue
+        type_text = re.sub(r"<[^>]+>", " ", unescape(raw_type)).strip()
+        req_text = re.sub(r"<[^>]+>", " ", unescape(raw_required)).strip().lower()
+        required = req_text in {"yes", "required", "true"}
+        _add_query_param(name, _infer_type(type_text), required)
+
+    # Parse forms that submit directly to this endpoint and capture named inputs/selects.
+    endpoint_form_pattern = (
+        r'<form[^>]*action=["\']https?://[^"\']*'
+        + re.escape(endpoint_path)
+        + r'[^"\']*["\'][^>]*>(.*?)</form>'
+    )
+    for form_block in re.findall(endpoint_form_pattern, content, re.IGNORECASE | re.DOTALL):
+        for name in re.findall(r'\bname=["\']([a-zA-Z_][a-zA-Z0-9_\-]*)["\']', form_block):
+            _add_query_param(name, "string", False)
 
     return params
 
@@ -315,8 +391,15 @@ def extract_base_url(url: str, content: str) -> str:
     parsed = urlparse(url)
     base = f"{parsed.scheme}://{parsed.netloc}"
 
-    # Prefer explicit API hosts when present in docs (e.g., https://api.open-meteo.com/v1/forecast).
-    api_url_match = re.search(r'(https?://api[.\-][^/\s"\'<]+)(?:/v\d+/[a-zA-Z0-9_/\-]*)?', content, re.IGNORECASE)
+    # Prefer explicit API hosts when present in docs.
+    # Supports hosts like:
+    # - https://api.open-meteo.com/v1/forecast
+    # - https://flood-api.open-meteo.com/v1/flood
+    api_url_match = re.search(
+        r'(https?://[a-zA-Z0-9.\-]*api[a-zA-Z0-9.\-]*)(?:/v\d+/[a-zA-Z0-9_/\-]*)?',
+        content,
+        re.IGNORECASE
+    )
     if api_url_match:
         return api_url_match.group(1).rstrip("/")
 
