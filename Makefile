@@ -1,7 +1,6 @@
 .PHONY: help install install-dev format lint lint-fix check test validate clean \
 	check-clean-git tag tag-patch tag-minor tag-major tag-push
 
-PYTHON ?= python3
 SRC_DIRS := skills
 PY_FILES := $(shell find $(SRC_DIRS) -type f -name '*.py' \
 	-not -path '*/.venv/*' \
@@ -33,42 +32,42 @@ install-dev:
 	uv sync --all-extras
 
 format:
-	@if command -v ruff >/dev/null 2>&1; then \
-		ruff format $(SRC_DIRS); \
-	elif command -v black >/dev/null 2>&1; then \
-		black $(SRC_DIRS); \
-		if command -v isort >/dev/null 2>&1; then isort $(SRC_DIRS); fi; \
+	@if uv run ruff --version >/dev/null 2>&1; then \
+		uv run ruff format $(SRC_DIRS); \
+	elif uv run black --version >/dev/null 2>&1; then \
+		uv run black $(SRC_DIRS); \
+		if uv run isort --version >/dev/null 2>&1; then uv run isort $(SRC_DIRS); fi; \
 	else \
 		echo "No formatter installed (ruff/black)."; \
 		exit 1; \
 	fi
 
 lint:
-	@if command -v ruff >/dev/null 2>&1; then \
-		ruff check $(SRC_DIRS); \
+	@if uv run ruff --version >/dev/null 2>&1; then \
+		uv run ruff check $(SRC_DIRS); \
 	else \
-		$(PYTHON) -m py_compile $(PY_FILES); \
+		uv run python -m py_compile $(PY_FILES); \
 	fi
 
 lint-fix:
-	@if command -v ruff >/dev/null 2>&1; then \
-		ruff check $(SRC_DIRS) --fix; \
-		ruff format $(SRC_DIRS); \
-	elif command -v black >/dev/null 2>&1; then \
-		black $(SRC_DIRS); \
-		if command -v isort >/dev/null 2>&1; then isort $(SRC_DIRS); fi; \
+	@if uv run ruff --version >/dev/null 2>&1; then \
+		uv run ruff check $(SRC_DIRS) --fix; \
+		uv run ruff format $(SRC_DIRS); \
+	elif uv run black --version >/dev/null 2>&1; then \
+		uv run black $(SRC_DIRS); \
+		if uv run isort --version >/dev/null 2>&1; then uv run isort $(SRC_DIRS); fi; \
 	else \
 		echo "No lint/format tools installed (ruff/black)."; \
 		exit 1; \
 	fi
 
 check: format lint
-	@$(PYTHON) -m py_compile $(PY_FILES)
+	@uv run python -m py_compile $(PY_FILES)
 
 test:
 	@if [ -d tests ]; then \
-		if command -v pytest >/dev/null 2>&1; then \
-			pytest tests -v; \
+		if uv run pytest --version >/dev/null 2>&1; then \
+			uv run pytest tests -v; \
 		else \
 			echo "pytest not installed"; exit 1; \
 		fi; \
