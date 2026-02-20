@@ -3,18 +3,19 @@
 ## Table of Contents
 
 1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Authentication](#authentication)
-5. [Endpoint Reference](#endpoint-reference)
-6. [Input/Output Examples](#inputoutput-examples)
-7. [Caching](#caching)
-8. [Rate Limiting](#rate-limiting)
-9. [Error Handling](#error-handling)
-10. [Logging](#logging)
-11. [Best Click Practices](#best-click-practices)
-12. [Makefile & Project Management](#makefile--project-management)
-13. [Implementation Checklist](#implementation-checklist)
+2. [Implementation Decisions](#implementation-decisions)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Authentication](#authentication)
+6. [Endpoint Reference](#endpoint-reference)
+7. [Input/Output Examples](#inputoutput-examples)
+8. [Caching](#caching)
+9. [Rate Limiting](#rate-limiting)
+10. [Error Handling](#error-handling)
+11. [Logging](#logging)
+12. [Best Click Practices](#best-click-practices)
+13. [Makefile & Project Management](#makefile--project-management)
+14. [Implementation Checklist](#implementation-checklist)
 
 ---
 
@@ -47,6 +48,26 @@ This document describes the Product Requirements for a Python CLI client for **[
 - ✓ Rate limiting respects API quota
 - ✓ Comprehensive logging for debugging
 - ✓ Configuration management via CLI and files
+
+---
+
+## Implementation Decisions
+
+Capture user-confirmed decisions from `skills/doc-to-prd/assets/questions.md`:
+
+- CLI Name: `[cli-name]`
+- Python Version: `[python-version-policy]`
+- HTTP Library: `[requests|httpx|aiohttp|urllib3]`
+- Authentication: `[auth-scheme]`
+- Timeout: `[timeout-policy]`
+- Retry Policy: `[retry-policy]`
+- Output Formats: `[json,csv,xlsx]`
+- Batch Input Formats: `[csv|txt|both|none]`
+- Timestamped Outputs: `[yes/no + format]`
+- Lint/Format Toolchain: `[toolchain]`
+- Validation Commands: `[validation-commands]`
+
+This section is the source of truth for `prd-to-cli` generation.
 
 ---
 
@@ -84,7 +105,7 @@ uv run [cli-name] --help
 ### Dependencies
 
 The client requires:
-- **requests** ≥ 2.28.0 — HTTP client library
+- **[HTTP_LIBRARY]** ≥ [MIN_VERSION] — HTTP client library (from Implementation Decisions)
 - **click** ≥ 8.1.0 — CLI framework
 - **pandas** ≥ 1.5.0 — Data manipulation
 - **python-dotenv** ≥ 0.21.0 — Environment configuration

@@ -75,6 +75,18 @@ class PRDParser:
                 self.api_info["base_url"] = match.group(1).strip()
                 break
 
+        # Extract HTTP library decision selected during doc-to-prd.
+        http_library_patterns = [
+            r"\*\*HTTP Library:\*\*\s+`?([a-zA-Z0-9_\-]+)`?",
+            r"HTTP library:\s*`?([a-zA-Z0-9_\-]+)`?",
+            r"`http_library`:\s*`?([a-zA-Z0-9_\-]+)`?",
+        ]
+        for pattern in http_library_patterns:
+            match = re.search(pattern, self.content, re.IGNORECASE)
+            if match:
+                self.api_info["http_library"] = match.group(1).strip().lower()
+                break
+
     def _extract_resources(self):
         """Extract API resources (e.g., pets, users, orders) from section headers."""
         endpoint_paths = self._extract_endpoint_inventory_paths()
@@ -147,6 +159,38 @@ class CLIProjectGenerator:
         self.parsed_prd = parsed_prd
         self.config = config
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.http_library = self._resolve_http_library()
+        self.dependencies = self._build_dependencies()
+
+    def _resolve_http_library(self) -> str:
+        """Resolve selected HTTP library from PRD metadata/config."""
+        requested = (
+            self.config.get("http_library")
+            or self.parsed_prd.get("api_info", {}).get("http_library")
+            or "requests"
+        )
+        normalized = str(requested).strip().lower()
+        if normalized not in {"requests", "httpx", "aiohttp", "urllib3"}:
+            return "requests"
+        return normalized
+
+    def _build_dependencies(self) -> List[str]:
+        """Single source of truth for generated dependencies."""
+        deps = [
+            "click>=8.0.0",
+            "python-dotenv>=0.19.0",
+            "pandas>=1.3.0",
+            "openpyxl>=3.1.2",
+        ]
+        if self.http_library == "httpx":
+            deps.append("httpx>=0.27.0")
+        elif self.http_library == "aiohttp":
+            deps.append("aiohttp>=3.9.0")
+        elif self.http_library == "urllib3":
+            deps.append("urllib3>=2.2.0")
+        else:
+            deps.append("requests>=2.28.0")
+        return deps
 
     def generate(self):
         """Generate the complete project structure."""
@@ -161,7 +205,6 @@ class CLIProjectGenerator:
         # Generate files
         self._generate_cli_main(project_path)
         self._generate_client(project_path)
-        self._generate_config(project_path)
         self._generate_batch_processor(project_path)
         self._generate_env_file(project_path)
         self._generate_init_files(project_path)
@@ -254,115 +297,237 @@ if __name__ == '__main__':
         (project_path / "src" / "cli.py").write_text(cli_content)
 
     def _generate_client(self, project_path: Path):
-        """Generate HTTP client library."""
-        client_content = f'''"""
+        """Generate HTTP client library based on selected HTTP transport."""
+        base_url = self.parsed_prd["api_info"].get("base_url", "https://api.example.com")
+        title = self.parsed_prd["api_info"].get("title", "API")
+        auth_methods = self.parsed_prd["auth_methods"]
+        selected = self.http_library
+
+        if selected == "httpx":
+            client_content = f'''"""
 API Client Library - Auto-generated from PRD.md
 """
 
-import requests
 from typing import Dict, Any, Optional
+import httpx
 from src.config import Config
 
 
 class APIClient:
-    """HTTP client for {self.parsed_prd['api_info'].get('title', 'API')}."""
+    """HTTP client for {title} using httpx."""
 
     def __init__(self, config: Config):
         self.config = config
-        self.base_url = config.get('base_url', '{self.parsed_prd['api_info'].get('base_url', 'https://api.example.com')}')
+        self.base_url = config.get('base_url', '{base_url}')
+        self.client = httpx.Client(timeout=30.0)
+        self._setup_auth()
+
+    def _setup_auth(self):
+        auth_methods = {auth_methods}
+        if 'api_key' in auth_methods:
+            api_key = self.config.get('api_key', '')
+            if api_key:
+                self.client.headers.update({{'X-API-Key': api_key}})
+        if 'bearer_token' in auth_methods:
+            token = self.config.get('api_token', '')
+            if token:
+                self.client.headers.update({{'Authorization': f'Bearer {{token}}'}})
+
+    def _request(self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
+        url = f"{{self.base_url}}{{endpoint}}"
+        response = self.client.request(method=method, url=url, params=params, json=data)
+        response.raise_for_status()
+        if not response.text:
+            return {{}}
+        return response.json()
+
+    def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
+        return self._request('GET', endpoint, params=params)
+
+    def post(self, endpoint: str, data: Dict) -> Dict[str, Any]:
+        return self._request('POST', endpoint, data=data)
+
+    def put(self, endpoint: str, data: Dict) -> Dict[str, Any]:
+        return self._request('PUT', endpoint, data=data)
+
+    def delete(self, endpoint: str) -> Dict[str, Any]:
+        result = self._request('DELETE', endpoint)
+        return result if result else {{"status": "deleted"}}
+'''
+        elif selected == "aiohttp":
+            client_content = f'''"""
+API Client Library - Auto-generated from PRD.md
+"""
+
+import asyncio
+from typing import Dict, Any, Optional
+import aiohttp
+from src.config import Config
+
+
+class APIClient:
+    """HTTP client for {title} using aiohttp."""
+
+    def __init__(self, config: Config):
+        self.config = config
+        self.base_url = config.get('base_url', '{base_url}')
+        self.headers: Dict[str, str] = {{}}
+        self._setup_auth()
+
+    def _setup_auth(self):
+        auth_methods = {auth_methods}
+        if 'api_key' in auth_methods:
+            api_key = self.config.get('api_key', '')
+            if api_key:
+                self.headers['X-API-Key'] = api_key
+        if 'bearer_token' in auth_methods:
+            token = self.config.get('api_token', '')
+            if token:
+                self.headers['Authorization'] = f'Bearer {{token}}'
+
+    async def _request_async(self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
+        url = f"{{self.base_url}}{{endpoint}}"
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(headers=self.headers, timeout=timeout) as session:
+            async with session.request(method=method, url=url, params=params, json=data) as response:
+                response.raise_for_status()
+                text = await response.text()
+                if not text:
+                    return {{}}
+                return await response.json()
+
+    def _request(self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
+        return asyncio.run(self._request_async(method, endpoint, params=params, data=data))
+
+    def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
+        return self._request('GET', endpoint, params=params)
+
+    def post(self, endpoint: str, data: Dict) -> Dict[str, Any]:
+        return self._request('POST', endpoint, data=data)
+
+    def put(self, endpoint: str, data: Dict) -> Dict[str, Any]:
+        return self._request('PUT', endpoint, data=data)
+
+    def delete(self, endpoint: str) -> Dict[str, Any]:
+        result = self._request('DELETE', endpoint)
+        return result if result else {{"status": "deleted"}}
+'''
+        elif selected == "urllib3":
+            client_content = f'''"""
+API Client Library - Auto-generated from PRD.md
+"""
+
+import json
+from typing import Dict, Any, Optional
+import urllib3
+from urllib.parse import urlencode
+from src.config import Config
+
+
+class APIClient:
+    """HTTP client for {title} using urllib3."""
+
+    def __init__(self, config: Config):
+        self.config = config
+        self.base_url = config.get('base_url', '{base_url}')
+        self.headers: Dict[str, str] = {{}}
+        self.http = urllib3.PoolManager()
+        self._setup_auth()
+
+    def _setup_auth(self):
+        auth_methods = {auth_methods}
+        if 'api_key' in auth_methods:
+            api_key = self.config.get('api_key', '')
+            if api_key:
+                self.headers['X-API-Key'] = api_key
+        if 'bearer_token' in auth_methods:
+            token = self.config.get('api_token', '')
+            if token:
+                self.headers['Authorization'] = f'Bearer {{token}}'
+
+    def _request(self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
+        query = urlencode(params or {{}}) if params else ''
+        url = f"{{self.base_url}}{{endpoint}}"
+        if query:
+            url = f"{{url}}?{{query}}"
+        body = json.dumps(data).encode('utf-8') if data is not None else None
+        headers = dict(self.headers)
+        if body is not None:
+            headers['Content-Type'] = 'application/json'
+        response = self.http.request(method, url, body=body, headers=headers, timeout=30.0)
+        if response.status >= 400:
+            raise RuntimeError(f"HTTP {{response.status}}: {{response.data.decode('utf-8', errors='ignore')}}")
+        payload = response.data.decode('utf-8', errors='ignore').strip()
+        if not payload:
+            return {{}}
+        return json.loads(payload)
+
+    def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
+        return self._request('GET', endpoint, params=params)
+
+    def post(self, endpoint: str, data: Dict) -> Dict[str, Any]:
+        return self._request('POST', endpoint, data=data)
+
+    def put(self, endpoint: str, data: Dict) -> Dict[str, Any]:
+        return self._request('PUT', endpoint, data=data)
+
+    def delete(self, endpoint: str) -> Dict[str, Any]:
+        result = self._request('DELETE', endpoint)
+        return result if result else {{"status": "deleted"}}
+'''
+        else:
+            client_content = f'''"""
+API Client Library - Auto-generated from PRD.md
+"""
+
+from typing import Dict, Any, Optional
+import requests
+from src.config import Config
+
+
+class APIClient:
+    """HTTP client for {title} using requests."""
+
+    def __init__(self, config: Config):
+        self.config = config
+        self.base_url = config.get('base_url', '{base_url}')
         self.session = requests.Session()
         self._setup_auth()
 
     def _setup_auth(self):
-        """Configure authentication headers."""
-        auth_methods = {self.parsed_prd['auth_methods']}
-
+        auth_methods = {auth_methods}
         if 'api_key' in auth_methods:
             api_key = self.config.get('api_key', '')
             if api_key:
                 self.session.headers.update({{'X-API-Key': api_key}})
-
         if 'bearer_token' in auth_methods:
             token = self.config.get('api_token', '')
             if token:
                 self.session.headers.update({{'Authorization': f'Bearer {{token}}'}})
 
-    def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
-        """Execute GET request."""
+    def _request(self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
         url = f"{{self.base_url}}{{endpoint}}"
-        response = self.session.get(url, params=params, timeout=30)
+        response = self.session.request(method=method, url=url, params=params, json=data, timeout=30)
         response.raise_for_status()
+        if not response.text:
+            return {{}}
         return response.json()
+
+    def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
+        return self._request('GET', endpoint, params=params)
 
     def post(self, endpoint: str, data: Dict) -> Dict[str, Any]:
-        """Execute POST request."""
-        url = f"{{self.base_url}}{{endpoint}}"
-        response = self.session.post(url, json=data, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        return self._request('POST', endpoint, data=data)
 
     def put(self, endpoint: str, data: Dict) -> Dict[str, Any]:
-        """Execute PUT request."""
-        url = f"{{self.base_url}}{{endpoint}}"
-        response = self.session.put(url, json=data, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        return self._request('PUT', endpoint, data=data)
 
     def delete(self, endpoint: str) -> Dict[str, Any]:
-        """Execute DELETE request."""
-        url = f"{{self.base_url}}{{endpoint}}"
-        response = self.session.delete(url, timeout=30)
-        response.raise_for_status()
-        return response.json() if response.text else {{"status": "deleted"}}
+        result = self._request('DELETE', endpoint)
+        return result if result else {{"status": "deleted"}}
 '''
 
         (project_path / "src" / "client.py").write_text(client_content)
-
-    def _generate_config(self, project_path: Path):
-        """Generate configuration management."""
-        config_content = '''"""
-Configuration management for the CLI.
-"""
-
-import json
-from pathlib import Path
-from typing import Dict, Any, Optional
-
-
-class Config:
-    """Load and manage configuration from .env and config files."""
-
-    def __init__(self, config_path: Optional[str] = None):
-        self.config_path = Path(config_path) if config_path else Path('.env')
-        self.config: Dict[str, Any] = {}
-        self.load()
-
-    def load(self):
-        """Load configuration from .env file."""
-        if self.config_path.exists():
-            with open(self.config_path) as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#'):
-                        key, value = line.split('=', 1)
-                        self.config[key.strip()] = value.strip()
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get configuration value."""
-        return self.config.get(key, default)
-
-    def set(self, key: str, value: Any):
-        """Set configuration value."""
-        self.config[key] = value
-
-    def save(self):
-        """Save configuration to .env file."""
-        with open(self.config_path, 'w') as f:
-            for key, value in self.config.items():
-                f.write(f"{key}={value}\\n")
-'''
-
-        (project_path / "src" / "config.py").write_text(config_content)
 
     def _generate_batch_processor(self, project_path: Path):
         """Generate batch request processor."""
@@ -512,12 +677,7 @@ verbose=false
 
     def _generate_requirements(self, project_path: Path):
         """Generate requirements.txt."""
-        requirements = """click>=8.0.0
-requests>=2.28.0
-python-dotenv>=0.19.0
-pandas>=1.3.0
-openpyxl>=3.1.2
-"""
+        requirements = "\n".join(self.dependencies) + "\n"
         (project_path / "requirements.txt").write_text(requirements)
 
     def _generate_pyproject(self, project_path: Path):
@@ -531,13 +691,7 @@ openpyxl>=3.1.2
         )
         safe_project_name = self.project_name.replace("_", "-")
 
-        dependencies = [
-            '"click>=8.0.0"',
-            '"requests>=2.28.0"',
-            '"python-dotenv>=0.19.0"',
-            '"pandas>=1.3.0"',
-            '"openpyxl>=3.1.2"',
-        ]
+        dependencies = [f'"{dep}"' for dep in self.dependencies]
         dependencies_block = ",\n    ".join(dependencies)
 
         pyproject = (
@@ -572,6 +726,7 @@ openpyxl>=3.1.2
             "PROJECT_NAME_DASH": safe_project_name,
             "API_TITLE": self.parsed_prd["api_info"].get("title", "API"),
             "BASE_URL": self.parsed_prd["api_info"].get("base_url", "https://api.example.com"),
+            "HTTP_LIBRARY": self.http_library,
             "TIMESTAMP_FORMAT": "%Y%m%d_%H%M%S",
             "ENV_PREFIX": re.sub(r"[^A-Z0-9]", "_", self.project_name.upper()),
             "RESOURCE_HELP_LINES": "\n".join(resource_help_lines) if resource_help_lines else "\t@echo \"  (no resource groups discovered from PRD)\"",
