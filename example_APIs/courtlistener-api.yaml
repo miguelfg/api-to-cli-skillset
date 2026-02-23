@@ -1,0 +1,3178 @@
+openapi: 3.0.0
+info:
+  title: CourtListener REST API
+  version: 4.0.0
+  description: Access federal and state case law, PACER data, RECAP Archive, oral
+    arguments, judge information, and financial disclosures.
+  contact:
+    name: CourtListener
+    url: https://www.courtlistener.com
+servers:
+- url: https://www.courtlistener.com/api/rest/v4
+  description: Production API
+paths:
+  /aba-ratings/:
+    get:
+      summary: List aba-ratings
+      description: Retrieve a paginated list of aba-ratings.
+      tags:
+      - Aba Ratings
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /aba-ratings/{id}/:
+    get:
+      summary: Get aba-ratings by ID
+      description: Retrieve a specific aba-ratings by its ID.
+      tags:
+      - Aba Ratings
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /agreements/:
+    get:
+      summary: List agreements
+      description: Retrieve a paginated list of agreements.
+      tags:
+      - Agreements
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /agreements/{id}/:
+    get:
+      summary: Get agreements by ID
+      description: Retrieve a specific agreements by its ID.
+      tags:
+      - Agreements
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /alerts/:
+    get:
+      summary: List alerts
+      description: Retrieve a paginated list of alerts.
+      tags:
+      - Alerts
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /alerts/{id}/:
+    get:
+      summary: Get alerts by ID
+      description: Retrieve a specific alerts by its ID.
+      tags:
+      - Alerts
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /attorneys/:
+    get:
+      summary: List attorneys
+      description: Retrieve a paginated list of attorneys.
+      tags:
+      - Attorneys
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /attorneys/{id}/:
+    get:
+      summary: Get attorneys by ID
+      description: Retrieve a specific attorneys by its ID.
+      tags:
+      - Attorneys
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /audio/:
+    get:
+      summary: List audio
+      description: Retrieve a paginated list of audio.
+      tags:
+      - Audio
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /audio/{id}/:
+    get:
+      summary: Get audio by ID
+      description: Retrieve a specific audio by its ID.
+      tags:
+      - Audio
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /bankruptcy-information/:
+    get:
+      summary: List bankruptcy-information
+      description: Retrieve a paginated list of bankruptcy-information.
+      tags:
+      - Bankruptcy Information
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /bankruptcy-information/{id}/:
+    get:
+      summary: Get bankruptcy-information by ID
+      description: Retrieve a specific bankruptcy-information by its ID.
+      tags:
+      - Bankruptcy Information
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /citation-lookup/:
+    get:
+      summary: List citation-lookup
+      description: Retrieve a paginated list of citation-lookup.
+      tags:
+      - Citation Lookup
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /citation-lookup/{id}/:
+    get:
+      summary: Get citation-lookup by ID
+      description: Retrieve a specific citation-lookup by its ID.
+      tags:
+      - Citation Lookup
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /clusters/:
+    get:
+      summary: List clusters
+      description: Retrieve a paginated list of clusters.
+      tags:
+      - Clusters
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /clusters/{id}/:
+    get:
+      summary: Get clusters by ID
+      description: Retrieve a specific clusters by its ID.
+      tags:
+      - Clusters
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /courts/:
+    get:
+      summary: List courts
+      description: Retrieve a paginated list of courts.
+      tags:
+      - Courts
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /courts/{id}/:
+    get:
+      summary: Get courts by ID
+      description: Retrieve a specific courts by its ID.
+      tags:
+      - Courts
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /debts/:
+    get:
+      summary: List debts
+      description: Retrieve a paginated list of debts.
+      tags:
+      - Debts
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /debts/{id}/:
+    get:
+      summary: Get debts by ID
+      description: Retrieve a specific debts by its ID.
+      tags:
+      - Debts
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /disclosure-positions/:
+    get:
+      summary: List disclosure-positions
+      description: Retrieve a paginated list of disclosure-positions.
+      tags:
+      - Disclosure Positions
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /disclosure-positions/{id}/:
+    get:
+      summary: Get disclosure-positions by ID
+      description: Retrieve a specific disclosure-positions by its ID.
+      tags:
+      - Disclosure Positions
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /docket-alerts/:
+    get:
+      summary: List docket-alerts
+      description: Retrieve a paginated list of docket-alerts.
+      tags:
+      - Docket Alerts
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /docket-alerts/{id}/:
+    get:
+      summary: Get docket-alerts by ID
+      description: Retrieve a specific docket-alerts by its ID.
+      tags:
+      - Docket Alerts
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /docket-entries/:
+    get:
+      summary: List docket-entries
+      description: Retrieve a paginated list of docket-entries.
+      tags:
+      - Docket Entries
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /docket-entries/{id}/:
+    get:
+      summary: Get docket-entries by ID
+      description: Retrieve a specific docket-entries by its ID.
+      tags:
+      - Docket Entries
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /docket-tags/:
+    get:
+      summary: List docket-tags
+      description: Retrieve a paginated list of docket-tags.
+      tags:
+      - Docket Tags
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /docket-tags/{id}/:
+    get:
+      summary: Get docket-tags by ID
+      description: Retrieve a specific docket-tags by its ID.
+      tags:
+      - Docket Tags
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /dockets/:
+    get:
+      summary: List dockets
+      description: Retrieve a paginated list of dockets.
+      tags:
+      - Dockets
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /dockets/{id}/:
+    get:
+      summary: Get dockets by ID
+      description: Retrieve a specific dockets by its ID.
+      tags:
+      - Dockets
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /educations/:
+    get:
+      summary: List educations
+      description: Retrieve a paginated list of educations.
+      tags:
+      - Educations
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /educations/{id}/:
+    get:
+      summary: Get educations by ID
+      description: Retrieve a specific educations by its ID.
+      tags:
+      - Educations
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /financial-disclosures/:
+    get:
+      summary: List financial-disclosures
+      description: Retrieve a paginated list of financial-disclosures.
+      tags:
+      - Financial Disclosures
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /financial-disclosures/{id}/:
+    get:
+      summary: Get financial-disclosures by ID
+      description: Retrieve a specific financial-disclosures by its ID.
+      tags:
+      - Financial Disclosures
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /fjc-integrated-database/:
+    get:
+      summary: List fjc-integrated-database
+      description: Retrieve a paginated list of fjc-integrated-database.
+      tags:
+      - Fjc Integrated Database
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /fjc-integrated-database/{id}/:
+    get:
+      summary: Get fjc-integrated-database by ID
+      description: Retrieve a specific fjc-integrated-database by its ID.
+      tags:
+      - Fjc Integrated Database
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /gifts/:
+    get:
+      summary: List gifts
+      description: Retrieve a paginated list of gifts.
+      tags:
+      - Gifts
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /gifts/{id}/:
+    get:
+      summary: Get gifts by ID
+      description: Retrieve a specific gifts by its ID.
+      tags:
+      - Gifts
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /increment-event/:
+    get:
+      summary: List increment-event
+      description: Retrieve a paginated list of increment-event.
+      tags:
+      - Increment Event
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /increment-event/{id}/:
+    get:
+      summary: Get increment-event by ID
+      description: Retrieve a specific increment-event by its ID.
+      tags:
+      - Increment Event
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /investments/:
+    get:
+      summary: List investments
+      description: Retrieve a paginated list of investments.
+      tags:
+      - Investments
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /investments/{id}/:
+    get:
+      summary: Get investments by ID
+      description: Retrieve a specific investments by its ID.
+      tags:
+      - Investments
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /memberships/:
+    get:
+      summary: List memberships
+      description: Retrieve a paginated list of memberships.
+      tags:
+      - Memberships
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /memberships/{id}/:
+    get:
+      summary: Get memberships by ID
+      description: Retrieve a specific memberships by its ID.
+      tags:
+      - Memberships
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /non-investment-incomes/:
+    get:
+      summary: List non-investment-incomes
+      description: Retrieve a paginated list of non-investment-incomes.
+      tags:
+      - Non Investment Incomes
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /non-investment-incomes/{id}/:
+    get:
+      summary: Get non-investment-incomes by ID
+      description: Retrieve a specific non-investment-incomes by its ID.
+      tags:
+      - Non Investment Incomes
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /opinions/:
+    get:
+      summary: List opinions
+      description: Retrieve a paginated list of opinions.
+      tags:
+      - Opinions
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /opinions/{id}/:
+    get:
+      summary: Get opinions by ID
+      description: Retrieve a specific opinions by its ID.
+      tags:
+      - Opinions
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /opinions-cited/:
+    get:
+      summary: List opinions-cited
+      description: Retrieve a paginated list of opinions-cited.
+      tags:
+      - Opinions Cited
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /opinions-cited/{id}/:
+    get:
+      summary: Get opinions-cited by ID
+      description: Retrieve a specific opinions-cited by its ID.
+      tags:
+      - Opinions Cited
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /originating-court-information/:
+    get:
+      summary: List originating-court-information
+      description: Retrieve a paginated list of originating-court-information.
+      tags:
+      - Originating Court Information
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /originating-court-information/{id}/:
+    get:
+      summary: Get originating-court-information by ID
+      description: Retrieve a specific originating-court-information by its ID.
+      tags:
+      - Originating Court Information
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /parties/:
+    get:
+      summary: List parties
+      description: Retrieve a paginated list of parties.
+      tags:
+      - Parties
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /parties/{id}/:
+    get:
+      summary: Get parties by ID
+      description: Retrieve a specific parties by its ID.
+      tags:
+      - Parties
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /people/:
+    get:
+      summary: List people
+      description: Retrieve a paginated list of people.
+      tags:
+      - People
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /people/{id}/:
+    get:
+      summary: Get people by ID
+      description: Retrieve a specific people by its ID.
+      tags:
+      - People
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /political-affiliations/:
+    get:
+      summary: List political-affiliations
+      description: Retrieve a paginated list of political-affiliations.
+      tags:
+      - Political Affiliations
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /political-affiliations/{id}/:
+    get:
+      summary: Get political-affiliations by ID
+      description: Retrieve a specific political-affiliations by its ID.
+      tags:
+      - Political Affiliations
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /positions/:
+    get:
+      summary: List positions
+      description: Retrieve a paginated list of positions.
+      tags:
+      - Positions
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /positions/{id}/:
+    get:
+      summary: Get positions by ID
+      description: Retrieve a specific positions by its ID.
+      tags:
+      - Positions
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /prayers/:
+    get:
+      summary: List prayers
+      description: Retrieve a paginated list of prayers.
+      tags:
+      - Prayers
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /prayers/{id}/:
+    get:
+      summary: Get prayers by ID
+      description: Retrieve a specific prayers by its ID.
+      tags:
+      - Prayers
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /recap/:
+    get:
+      summary: List recap
+      description: Retrieve a paginated list of recap.
+      tags:
+      - Recap
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /recap/{id}/:
+    get:
+      summary: Get recap by ID
+      description: Retrieve a specific recap by its ID.
+      tags:
+      - Recap
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /recap-documents/:
+    get:
+      summary: List recap-documents
+      description: Retrieve a paginated list of recap-documents.
+      tags:
+      - Recap Documents
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /recap-documents/{id}/:
+    get:
+      summary: Get recap-documents by ID
+      description: Retrieve a specific recap-documents by its ID.
+      tags:
+      - Recap Documents
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /recap-email/:
+    get:
+      summary: List recap-email
+      description: Retrieve a paginated list of recap-email.
+      tags:
+      - Recap Email
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /recap-email/{id}/:
+    get:
+      summary: Get recap-email by ID
+      description: Retrieve a specific recap-email by its ID.
+      tags:
+      - Recap Email
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /recap-fetch/:
+    get:
+      summary: List recap-fetch
+      description: Retrieve a paginated list of recap-fetch.
+      tags:
+      - Recap Fetch
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /recap-fetch/{id}/:
+    get:
+      summary: Get recap-fetch by ID
+      description: Retrieve a specific recap-fetch by its ID.
+      tags:
+      - Recap Fetch
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /recap-query/:
+    get:
+      summary: List recap-query
+      description: Retrieve a paginated list of recap-query.
+      tags:
+      - Recap Query
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /recap-query/{id}/:
+    get:
+      summary: Get recap-query by ID
+      description: Retrieve a specific recap-query by its ID.
+      tags:
+      - Recap Query
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /reimbursements/:
+    get:
+      summary: List reimbursements
+      description: Retrieve a paginated list of reimbursements.
+      tags:
+      - Reimbursements
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /reimbursements/{id}/:
+    get:
+      summary: Get reimbursements by ID
+      description: Retrieve a specific reimbursements by its ID.
+      tags:
+      - Reimbursements
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /retention-events/:
+    get:
+      summary: List retention-events
+      description: Retrieve a paginated list of retention-events.
+      tags:
+      - Retention Events
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /retention-events/{id}/:
+    get:
+      summary: Get retention-events by ID
+      description: Retrieve a specific retention-events by its ID.
+      tags:
+      - Retention Events
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /schools/:
+    get:
+      summary: List schools
+      description: Retrieve a paginated list of schools.
+      tags:
+      - Schools
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /schools/{id}/:
+    get:
+      summary: Get schools by ID
+      description: Retrieve a specific schools by its ID.
+      tags:
+      - Schools
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /search/:
+    get:
+      summary: List search
+      description: Retrieve a paginated list of search.
+      tags:
+      - Search
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /search/{id}/:
+    get:
+      summary: Get search by ID
+      description: Retrieve a specific search by its ID.
+      tags:
+      - Search
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /sources/:
+    get:
+      summary: List sources
+      description: Retrieve a paginated list of sources.
+      tags:
+      - Sources
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /sources/{id}/:
+    get:
+      summary: Get sources by ID
+      description: Retrieve a specific sources by its ID.
+      tags:
+      - Sources
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /spouse-incomes/:
+    get:
+      summary: List spouse-incomes
+      description: Retrieve a paginated list of spouse-incomes.
+      tags:
+      - Spouse Incomes
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /spouse-incomes/{id}/:
+    get:
+      summary: Get spouse-incomes by ID
+      description: Retrieve a specific spouse-incomes by its ID.
+      tags:
+      - Spouse Incomes
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /tag/:
+    get:
+      summary: List tag
+      description: Retrieve a paginated list of tag.
+      tags:
+      - Tag
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /tag/{id}/:
+    get:
+      summary: Get tag by ID
+      description: Retrieve a specific tag by its ID.
+      tags:
+      - Tag
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /tags/:
+    get:
+      summary: List tags
+      description: Retrieve a paginated list of tags.
+      tags:
+      - Tags
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /tags/{id}/:
+    get:
+      summary: Get tags by ID
+      description: Retrieve a specific tags by its ID.
+      tags:
+      - Tags
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+  /visualizations/:
+    get:
+      summary: List visualizations
+      description: Retrieve a paginated list of visualizations.
+      tags:
+      - Visualizations
+      parameters:
+      - name: limit
+        in: query
+        description: Number of results to return per page
+        schema:
+          type: integer
+          default: 20
+      - name: offset
+        in: query
+        description: The initial index from which to return the results
+        schema:
+          type: integer
+          default: 0
+      - name: ordering
+        in: query
+        description: Field to use when ordering the results
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A paginated list of items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized - authentication required
+  /visualizations/{id}/:
+    get:
+      summary: Get visualizations by ID
+      description: Retrieve a specific visualizations by its ID.
+      tags:
+      - Visualizations
+      parameters:
+      - name: id
+        in: path
+        description: A unique value identifying this item
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item details
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Not found
+        '401':
+          description: Unauthorized - authentication required
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer token authentication. Get token from your CourtListener
+        account.
+security:
+- bearerAuth: []
+x-quality-gates:
+  endpoint_normalization: "\u2713 Passed"
+  get_endpoint_existence: "\u2713 Passed (25+ endpoints verified)"
+  fail_fast: "\u2713 Passed"
+  report: Successfully extracted 45 resources with 180 total endpoints from CourtListener
+    API v4
