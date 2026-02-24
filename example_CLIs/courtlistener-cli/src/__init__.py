@@ -1,1 +1,3 @@
-"""CourtListener Python Client"""\n\n__version__ = "1.0.0"\n
+"""CourtListener Python Client"""
+
+__version__ = "1.0.0"
