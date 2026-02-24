@@ -1,4 +1,2 @@
-method,endpoint,limit,search
-GET,/opinions/,20,patent
-GET,/opinions/,50,trademark
-GET,/courts/,10,
+method,endpoint,limit
+GET,/opinions/,20
