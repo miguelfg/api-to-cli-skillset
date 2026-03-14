@@ -430,6 +430,28 @@ For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.m
 - **[crawling_guide.md](references/crawling_guide.md)** — HTML caching, link extraction, and multi-page crawling guide
 - **[examples.md](references/examples.md)** — Real-world examples and workflow demonstrations
 
+## Understanding the Generated OpenAPI Output
+
+The skill generates OpenAPI 3.0.0 YAML files with the following structure (see `assets/openapi_template.yaml` for reference):
+
+- **info**: API metadata (title, version, description, contact, license)
+- **servers**: Base URL(s) where the API is hosted
+- **paths**: HTTP endpoints with methods, parameters, request bodies, and responses
+- **schemas**: Reusable type definitions for request/response validation
+
+Reference template at `assets/openapi_template.yaml` shows:
+- Standard endpoint definitions (GET, POST, PUT, DELETE)
+- Path parameters (e.g., `{id}`)
+- Request body schemas for POST/PUT
+- Response codes and descriptions
+- Tagging and summary documentation
+
+Users can manually enhance the generated spec to add:
+- Authentication schemes (OAuth2, API Key, etc.)
+- More detailed schema properties
+- Additional server environments (staging, development)
+- Custom extensions under `x-*` keys
+
 ## Complete API-to-CLI Workflow
 
 After generating the OpenAPI spec, the user continues with:
