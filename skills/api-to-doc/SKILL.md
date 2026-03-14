@@ -165,6 +165,34 @@ curl -s -L -o /dev/null -w "%{http_code}\n" "https://api.example.com/v1/forecast
 
 ## Execution Examples
 
+### Example 0: Failed Extraction (Error Scenario)
+
+**Input:** `https://internal-api.company.com/docs`
+
+**Process:**
+- Fetch documentation page
+- Detect HTML but no endpoint patterns found
+- Attempt multi-page crawling
+- Still zero endpoints after crawling
+
+**Outcome:** Exit with explicit error
+```
+ERROR: Could not extract any HTTP endpoints from https://internal-api.company.com/docs
+
+Reasons this might happen:
+- Documentation uses JavaScript rendering (cURL cannot execute JavaScript)
+- API documentation in non-standard format or structure
+- Anti-bot protection blocks automated requests
+
+Remediation:
+1. Verify the URL points to actual API documentation
+2. If docs use JavaScript, use Playwright (webapp-testing skill) first
+3. Try a direct OpenAPI/Swagger endpoint URL if available
+4. Manually provide API endpoints via doc-to-prd step
+```
+
+**No output file generated.** User must either resolve the issue or provide alternative documentation.
+
 ### Example 1: Existing OpenAPI Spec
 
 **Input:** `https://petstore.swagger.io`
