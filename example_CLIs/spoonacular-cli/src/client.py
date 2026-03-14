@@ -17,18 +17,16 @@ class APIClient:
         self._setup_auth()
 
     def _setup_auth(self):
-        auth_methods = []
-        if 'api_key' in auth_methods:
-            api_key = self.config.get('api_key', '')
-            if api_key:
-                self.session.headers.update({'X-API-Key': api_key})
-        if 'bearer_token' in auth_methods:
-            token = self.config.get('api_token', '')
-            if token:
-                self.session.headers.update({'Authorization': f'Bearer {token}'})
+        api_key = self.config.get('api_key', '')
+        if api_key:
+            # Spoonacular documents both x-api-key and apiKey query-param auth.
+            self.session.headers.update({'x-api-key': api_key})
 
     def _request(self, method: str, endpoint: str, params: Optional[Dict] = None, data: Optional[Dict] = None) -> Dict[str, Any]:
         url = f"{self.base_url}{endpoint}"
+        params = dict(params or {})
+        if self.config.get('api_key') and 'apiKey' not in params:
+            params['apiKey'] = self.config.get('api_key')
         response = self.session.request(method=method, url=url, params=params, json=data, timeout=30)
         response.raise_for_status()
         if not response.text:
