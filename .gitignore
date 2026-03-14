@@ -28,6 +28,7 @@ env/
 output/
 examples_CLIs/*/output/
 examples_CLIs/*/.env
+example_CLIs/*/.env
 examples_CLIs/*/tronscan_cli.log
 
 # OS

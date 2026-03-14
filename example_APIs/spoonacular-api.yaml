@@ -1,0 +1,268 @@
+openapi: 3.0.0
+info:
+  title: Spoonacular Food API
+  version: 1.0.0
+  description: Representative OpenAPI subset generated from the official Spoonacular
+    Food API documentation at https://spoonacular.com/food-api/docs.
+  contact:
+    name: Spoonacular
+    url: https://spoonacular.com/food-api
+servers:
+- url: https://api.spoonacular.com
+paths:
+  /recipes/complexSearch:
+    get:
+      summary: Search Recipes
+      tags:
+      - recipes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: query
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: diet
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: cuisine
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: number
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: number
+  /recipes/{id}/information:
+    get:
+      summary: Get Recipe Information
+      tags:
+      - recipes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: number
+      - name: includeNutrition
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: addWinePairing
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: addTasteData
+        in: query
+        required: false
+        schema:
+          type: boolean
+  /food/ingredients/search:
+    get:
+      summary: Search Ingredients
+      tags:
+      - ingredients
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: query
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: addChildren
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: metaInformation
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: number
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: number
+  /food/products/search:
+    get:
+      summary: Search Grocery Products
+      tags:
+      - products
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: query
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: addProductInformation
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: number
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: number
+  /food/menuItems/search:
+    get:
+      summary: Search Menu Items
+      tags:
+      - menu_items
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: query
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: addMenuItemInformation
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: number
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: number
+  /mealplanner/generate:
+    get:
+      summary: Generate Meal Plan
+      tags:
+      - meal_planning
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+      parameters:
+      - name: timeFrame
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: targetCalories
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: diet
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: exclude
+        in: query
+        required: false
+        schema:
+          type: string
+x-quality-gates:
+  enabled: true
+  base_url: https://api.spoonacular.com
+  total_input_endpoints: 6
+  get_probe_attempted: 5
+  get_probe_passed: 5
+  get_probe_failed: 0
+  filtered_out: 0
+  details:
+  - method: GET
+    path: /recipes/complexSearch
+    status: '401'
+    exists: true
+  - method: GET
+    path: /food/ingredients/search
+    status: '401'
+    exists: true
+  - method: GET
+    path: /food/products/search
+    status: '401'
+    exists: true
+  - method: GET
+    path: /food/menuItems/search
+    status: '401'
+    exists: true
+  - method: GET
+    path: /mealplanner/generate
+    status: '401'
+    exists: true
+  pass: true

@@ -1,0 +1,98 @@
+{
+  "title": "Spoonacular Food API",
+  "version": "1.0.0",
+  "base_url": "https://api.spoonacular.com",
+  "description": "Representative OpenAPI subset generated from the official Spoonacular Food API documentation at https://spoonacular.com/food-api/docs.",
+  "contact_name": "Spoonacular",
+  "contact_url": "https://spoonacular.com/food-api",
+  "endpoints": [
+    {
+      "path": "/recipes/complexSearch",
+      "method": "GET",
+      "description": "Search Recipes",
+      "tag": "recipes",
+      "parameters": {
+        "query": [
+          {"name": "query", "type": "string", "required": false},
+          {"name": "diet", "type": "string", "required": false},
+          {"name": "cuisine", "type": "string", "required": false},
+          {"name": "number", "type": "number", "required": false},
+          {"name": "offset", "type": "number", "required": false}
+        ]
+      }
+    },
+    {
+      "path": "/recipes/{id}/information",
+      "method": "GET",
+      "description": "Get Recipe Information",
+      "tag": "recipes",
+      "parameters": {
+        "path": [
+          {"name": "id", "type": "number", "required": true}
+        ],
+        "query": [
+          {"name": "includeNutrition", "type": "boolean", "required": false},
+          {"name": "addWinePairing", "type": "boolean", "required": false},
+          {"name": "addTasteData", "type": "boolean", "required": false}
+        ]
+      }
+    },
+    {
+      "path": "/food/ingredients/search",
+      "method": "GET",
+      "description": "Search Ingredients",
+      "tag": "ingredients",
+      "parameters": {
+        "query": [
+          {"name": "query", "type": "string", "required": false},
+          {"name": "addChildren", "type": "boolean", "required": false},
+          {"name": "metaInformation", "type": "boolean", "required": false},
+          {"name": "number", "type": "number", "required": false},
+          {"name": "offset", "type": "number", "required": false}
+        ]
+      }
+    },
+    {
+      "path": "/food/products/search",
+      "method": "GET",
+      "description": "Search Grocery Products",
+      "tag": "products",
+      "parameters": {
+        "query": [
+          {"name": "query", "type": "string", "required": false},
+          {"name": "addProductInformation", "type": "boolean", "required": false},
+          {"name": "number", "type": "number", "required": false},
+          {"name": "offset", "type": "number", "required": false}
+        ]
+      }
+    },
+    {
+      "path": "/food/menuItems/search",
+      "method": "GET",
+      "description": "Search Menu Items",
+      "tag": "menu_items",
+      "parameters": {
+        "query": [
+          {"name": "query", "type": "string", "required": false},
+          {"name": "addMenuItemInformation", "type": "boolean", "required": false},
+          {"name": "number", "type": "number", "required": false},
+          {"name": "offset", "type": "number", "required": false}
+        ]
+      }
+    },
+    {
+      "path": "/mealplanner/generate",
+      "method": "GET",
+      "description": "Generate Meal Plan",
+      "tag": "meal_planning",
+      "parameters": {
+        "query": [
+          {"name": "timeFrame", "type": "string", "required": false},
+          {"name": "targetCalories", "type": "number", "required": false},
+          {"name": "diet", "type": "string", "required": false},
+          {"name": "exclude", "type": "string", "required": false}
+        ]
+      }
+    }
+  ]
+}
