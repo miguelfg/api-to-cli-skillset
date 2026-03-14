@@ -257,38 +257,7 @@ If patterns don't match or endpoint extraction is empty/uncertain, stop with an 
 
 ## Configuration & Customization
 
-### Base URL Detection
-
-The skill looks for base URL indicators in the fetched content:
-
-- Meta tags: `<meta name="api-base-url" content="https://api.example.com">`
-- Documentation text: `Base URL: https://api.example.com`
-- JavaScript constants: `const API_BASE = "https://api.example.com"`
-
-If not found, defaults to the domain of the provided URL.
-
-### Endpoint Tagging
-
-Endpoints are automatically tagged by resource type (Users, Posts, Comments, etc.) based on the path structure. Tags help organize endpoints in the generated PRD.
-
-### Response Schemas
-
-Generated responses use minimal but valid JSON schema:
-
-```yaml
-responses:
-  '200':
-    description: Successful response
-    content:
-      application/json:
-        schema:
-          type: object
-          properties:
-            data:
-              type: object
-```
-
-Users can enhance these in the generated OpenAPI file or in the PRD step.
+The skill automatically detects base URLs, tags endpoints by resource type, and generates response schemas. For detailed configuration options and customization, see [configuration.md](references/configuration.md).
 
 ## Next Steps in the Workflow
 
@@ -355,41 +324,7 @@ After generating `<project-name>-api.yaml`, the user should invoke the `doc-to-p
 
 ## Advanced Features
 
-### HTML Content Parsing
-
-The skill includes an `HTMLContentExtractor` class that:
-- Parses HTML structure for better context understanding
-- Extracts text content and code blocks separately
-- Identifies section headers (h1-h5) for better organization
-- Handles nested elements and preserves meaningful whitespace
-
-This enables more accurate extraction of parameter documentation and examples.
-
-### Parameter Extraction
-
-**Path Parameters:** Automatically extracted from endpoint URLs using patterns like `{id}`, `:id`, `[id]`
-
-**Query Parameters:** Located by searching for documentation sections containing:
-- "Query Parameters"
-- "Query String"
-- "Optional Parameters"
-- "Parameters"
-
-**Request Body:** Located by searching for sections containing:
-- "Request Body"
-- "Body Parameters"
-- "Payload"
-- "Body"
-
-**Inferred from Examples:** When explicit documentation is missing, types and required status are inferred from code examples.
-
-### Example and Schema Extraction
-
-The skill automatically extracts:
-- **Request Examples**: From markdown/HTML code blocks labeled "Request Example"
-- **Response Examples**: From code blocks labeled "Response Example"
-- **Schema Generation**: Uses examples to infer field types and object structures
-- **JSON Parsing**: Validates extracted examples as valid JSON before including
+The skill includes advanced HTML parsing, intelligent parameter extraction, and automatic example/schema inference. For details on HTML content parsing, parameter extraction patterns, and example detection, see [advanced_features.md](references/advanced_features.md).
 
 ## HTML Caching & Crawling
 
@@ -471,7 +406,9 @@ For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.m
 ## References
 
 - **[openapi_structure.md](references/openapi_structure.md)** — OpenAPI 3.0.0 schema and structure guide
-- **[doc_patterns.md](references/doc_patterns.md)** — API documentation patterns and extraction strategies (now includes parameter patterns!)
+- **[doc_patterns.md](references/doc_patterns.md)** — API documentation patterns and extraction strategies
+- **[advanced_features.md](references/advanced_features.md)** — HTML parsing, parameter extraction, and example detection
+- **[configuration.md](references/configuration.md)** — Base URL detection, endpoint tagging, and response schema customization
 - **[crawling_guide.md](references/crawling_guide.md)** — HTML caching, link extraction, and multi-page crawling guide
 - **[examples.md](references/examples.md)** — Real-world examples and workflow demonstrations
 
