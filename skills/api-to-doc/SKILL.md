@@ -31,29 +31,21 @@ The **api-to-doc** skill converts API URLs into standardized OpenAPI 3.0.0 YAML 
 - Generate valid OpenAPI 3.0.0 YAML with enhanced schema information
 - First step in the api-to-cli workflow
 
-## Expected Parameters
+## Input Requirements
 
-```
-/api-to-doc <API_URL> [OUTPUT_FOLDER]
-```
-
-**Parameters:**
-- `API_URL` (required): The URL to API documentation or an endpoint serving OpenAPI/Swagger spec
+When invoked, Claude receives:
+- **API_URL** (required): A URL pointing to API documentation or an endpoint serving OpenAPI/Swagger spec
   - Examples: `https://petstore.swagger.io`, `https://api.github.com/docs`, `https://api.example.com`
-- `OUTPUT_FOLDER` (optional): Directory where the generated `<project-name>-api.yaml` file will be saved
+- **OUTPUT_FOLDER** (optional): Directory where the generated `<project-name>-api.yaml` should be saved
   - Default: Current working directory
-  - Example: `/api-to-doc https://api.example.com ./specs`
 
-## Workflow
+## How Claude Executes This Skill
 
-### 1. Provide an API URL
+### 1. Receive API URL
 
-Pass the API documentation URL to the skill:
-
-```
-/api-to-doc https://example-api.com/docs
-/api-to-doc https://petstore.swagger.io
-```
+Claude receives the API documentation URL from the user. Examples:
+- `https://example-api.com/docs`
+- `https://petstore.swagger.io`
 
 ### 2. Auto-Detection
 
@@ -117,34 +109,34 @@ curl -s -L -o /dev/null -w "%{http_code}\n" "https://api.example.com/health"
 curl -s -L -o /dev/null -w "%{http_code}\n" "https://api.example.com/v1/forecast"
 ```
 
-## Usage Examples
+## Execution Examples
 
 ### Example 1: Existing OpenAPI Spec
 
-```bash
-/api-to-doc https://petstore.swagger.io
-```
+**Input:** `https://petstore.swagger.io`
 
-**Result:** Converts Swagger/OpenAPI to standard OpenAPI 3.0 YAML
+**Process:** Detect Swagger specification and convert to OpenAPI 3.0.0 YAML
+
+**Output:** `petstore-api.yaml` with all endpoints and schemas
 
 ### Example 2: HTML REST Documentation
 
-```bash
-/api-to-doc https://api.github.com/docs
-```
+**Input:** `https://api.github.com/docs`
 
-**Result:** Parses HTML documentation, extracts endpoints like:
+**Process:** Parse HTML documentation, extract endpoints like:
 - `GET /repos/{owner}/{repo}`
 - `POST /repos/{owner}/{repo}/issues`
 - `GET /repos/{owner}/{repo}/pulls`
 
+**Output:** `github-api.yaml` with extracted endpoints and path parameters
+
 ### Example 3: Fail-Fast on Insufficient Docs
 
-```bash
-/api-to-doc https://internal-api.company.com
-# → Auto-detection finds no reliable endpoints
-# → Exits with error (no speculative OpenAPI output generated)
-```
+**Input:** `https://internal-api.company.com`
+
+**Process:** Auto-detection finds no reliable endpoints
+
+**Outcome:** Exit with explicit error message (do not generate misleading spec)
 
 ## Understanding the Output
 
@@ -261,15 +253,9 @@ responses:
 
 Users can enhance these in the generated OpenAPI file or in the PRD step.
 
-## Next Steps
+## Next Steps in the Workflow
 
-Once you have a `<project-name>-api.yaml` file:
-
-```bash
-/doc-to-prd @<project-name>-api.yaml
-```
-
-This converts the OpenAPI spec into a comprehensive PRD.md with authentication, examples, and best practices—ready for the next step: `prd-to-cli`.
+After generating `<project-name>-api.yaml`, the user should invoke the `doc-to-prd` skill with the generated OpenAPI file. This converts the OpenAPI spec into a comprehensive PRD.md with authentication, examples, and best practices—ready for the subsequent `prd-to-cli` skill.
 
 ## Troubleshooting
 
@@ -452,15 +438,9 @@ For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.m
 - **[crawling_guide.md](references/crawling_guide.md)** — HTML caching, link extraction, and multi-page crawling guide
 - **[examples.md](references/examples.md)** — Real-world examples and workflow demonstrations
 
-## Next Possible Steps
+## Complete API-to-CLI Workflow
 
-Run skills in sequence after this step:
+After generating the OpenAPI spec, the user continues with:
 
-1. Generate PRD from your spec:
-```bash
-/doc-to-prd @<project-name>-api.yaml
-```
-2. Generate CLI project from PRD:
-```bash
-/prd-to-cli @<project-name>_PRD.md <output-folder>
-```
+1. **Generate PRD**: User invokes `doc-to-prd` skill with the generated `<project-name>-api.yaml` to create a comprehensive PRD.md
+2. **Generate CLI Project**: User invokes `prd-to-cli` skill with the PRD.md to generate a complete Python Click CLI project with batch processing and configuration management
