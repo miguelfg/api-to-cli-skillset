@@ -450,6 +450,7 @@ For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.m
 
 ## References
 
+- **[quick_reference.md](references/quick_reference.md)** — Script execution order flowchart, success criteria, and decision trees
 - **[openapi_structure.md](references/openapi_structure.md)** — OpenAPI 3.0.0 schema and structure guide
 - **[doc_patterns.md](references/doc_patterns.md)** — API documentation patterns and extraction strategies
 - **[advanced_features.md](references/advanced_features.md)** — HTML parsing, parameter extraction, and example detection
