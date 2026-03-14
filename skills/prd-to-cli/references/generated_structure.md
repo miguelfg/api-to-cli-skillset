@@ -30,7 +30,8 @@ my_api_client/
 │   └── users-batch.csv
 ├── output/                    # Batch processing results (auto-created)
 │   ├── results_20260215_143022.json
-│   └── results_20260215_143523.xlsx
+│   ├── results_20260215_143523.xlsx
+│   └── results_20260215_143700.sqlite
 ├── .env                       # Configuration (copy from .env.example)
 ├── .env.example              # Configuration template
 ├── pyproject.toml            # Project metadata (uv/pip installable)
@@ -107,7 +108,7 @@ config.save()
 **Functionality:**
 - Parse CSV and TXT (JSON Lines) formats
 - Execute requests sequentially
-- Save results in JSON/CSV/XLSX format
+- Save results in JSON/CSV/XLSX/SQLite format
 - Support timestamp in filenames
 - Error handling and logging
 
@@ -126,7 +127,7 @@ uv run [cli-name] batch \
 **Purpose:** Provide a reusable logger setup for console/debug output.
 
 ### `src/output.py` — Output Helpers
-**Purpose:** Shared helpers to export API payloads as JSON/CSV/XLSX.
+**Purpose:** Shared helpers to export API payloads as JSON/CSV/XLSX/SQLite.
 
 ### `src/utils.py` — Utility Helpers
 **Purpose:** Common parsing helpers (for example, safe parsing of `.env` values).
@@ -333,6 +334,7 @@ GET,/pet/1
 - `results_20260215_143022.json` — With timestamp
 - `results.csv` — CSV export
 - `results.xlsx` — Excel export
+- `results.sqlite` — SQLite export with a `results` table
 
 **Example:** `output/results.json`
 ```json

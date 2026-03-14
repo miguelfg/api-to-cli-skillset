@@ -297,7 +297,7 @@ def cli(ctx, config, verbose):
         cli_content += '''
 
 @cli.command()
-@click.option('--format', type=click.Choice(['json', 'csv', 'xlsx']), default='json')
+@click.option('--format', type=click.Choice(['json', 'csv', 'xlsx', 'sqlite']), default='json')
 @click.option('--input-file', type=click.Path(exists=True), help='Batch input file (CSV/TXT)')
 @click.option('--output-path', type=click.Path(), default='./output', help='Output directory')
 @click.option('--include-timestamp', is_flag=True, help='Include timestamp in output filename')
@@ -561,12 +561,13 @@ class APIClient:
 Batch request processor for CSV/TXT input files.
 """
 
+import json
 import csv
 from pathlib import Path
 from typing import List, Dict, Any
-import json
 from src.client import APIClient
 from src.config import Config
+from src.output import save_output
 
 
 class BatchProcessor:
@@ -649,24 +650,14 @@ class BatchProcessor:
 
     def _save_results(self, results: List[Dict]):
         """Save results in specified format."""
-        from datetime import datetime
-
-        timestamp = datetime.now().strftime(self.timestamp_format) if self.include_timestamp else ''
-        filename = f"results_{timestamp}" if timestamp else "results"
-
-        if self.output_format == 'json':
-            output_file = self.output_path / f"{filename}.json"
-            with open(output_file, 'w') as f:
-                json.dump(results, f, indent=2)
-        elif self.output_format == 'csv':
-            output_file = self.output_path / f"{filename}.csv"
-            # Flatten results for CSV export
-            # Implementation depends on result structure
-        elif self.output_format == 'xlsx':
-            output_file = self.output_path / f"{filename}.xlsx"
-            # Requires openpyxl
-            # Implementation depends on result structure
-
+        output_file = save_output(
+            payload=results,
+            output_format=self.output_format,
+            output_dir=str(self.output_path),
+            stem="results",
+            include_timestamp=self.include_timestamp,
+            timestamp_format=self.timestamp_format,
+        )
         print(f"Results saved to: {output_file}")
 '''
 
@@ -682,6 +673,7 @@ api_token=your_bearer_token_here
 # Output Configuration
 timestamp_format=%Y%m%d_%H%M%S
 output_format=json
+# Supported values: json, csv, xlsx, sqlite
 include_timestamp=false
 
 # Batch Processing

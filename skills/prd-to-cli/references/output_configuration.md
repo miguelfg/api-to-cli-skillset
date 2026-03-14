@@ -49,6 +49,16 @@ Sheets:
 - `Orders` — Order operation results
 - `Users` — User operation results
 
+### SQLite
+- **Extension:** `.sqlite`
+- **Structure:** SQLite database file with a `results` table
+- **Best for:** Repeatable local analysis, SQL queries, lightweight persistence
+
+Example query:
+```sql
+SELECT * FROM results LIMIT 10;
+```
+
 ---
 
 ## Configuration Options
@@ -124,7 +134,7 @@ api_token=your_bearer_token
 ### Output Settings
 ```env
 # Output Configuration
-output_format=json              # json, csv, xlsx
+output_format=json              # json, csv, xlsx, sqlite
 timestamp_format=%Y%m%d_%H%M%S # Python strftime format
 include_timestamp=false         # true or false
 ```
@@ -177,6 +187,12 @@ uv run [cli-name] batch \
   --input-file users-batch.txt \
   --format xlsx \
   --output-path ./exports
+
+# Export to SQLite
+uv run [cli-name] batch \
+  --input-file users-batch.txt \
+  --format sqlite \
+  --output-path ./exports
 ```
 
 ### Verbose Output
@@ -210,6 +226,7 @@ project-name/
 └── output/                # Results (auto-created)
     ├── results_20260215_143022.json
     ├── results_20260215_143523.xlsx
+    ├── results_20260215_143700.sqlite
     └── results_20260215_144012.csv
 ```
 

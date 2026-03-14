@@ -58,14 +58,14 @@ Capture user-confirmed decisions from `skills/doc-to-prd/assets/questions.md`:
 - CLI Name: `[cli-name]`
 - Python Version: `[python-version-policy]`
 - HTTP Library: `[requests|httpx|aiohttp|urllib3]`
-- Authentication: `[auth-scheme]`
+- Authentication: `[derived from API/OpenAPI source]`
 - Timeout: `[timeout-policy]`
 - Retry Policy: `[retry-policy]`
-- Output Formats: `[json,csv,xlsx]`
+- Output Formats: `[json,csv,xlsx,sqlite]`
 - Batch Input Formats: `[csv|txt|both|none]`
 - Timestamped Outputs: `[yes/no + format]`
-- Lint/Format Toolchain: `[toolchain]`
-- Validation Commands: `[validation-commands]`
+- Default Save Data Mode: `[timestamped|overwrite|append_with_request_timestamp]`
+- Lint/Format Toolchain: `ruff check --fix` + `ruff format`
 
 This section is the source of truth for `prd-to-cli` generation.
 
@@ -101,6 +101,17 @@ pip install [api-client]
 uv run [cli-name] --version
 uv run [cli-name] --help
 ```
+
+### Validation Requirements
+
+The generated CLI project must include live smoke validation for read-oriented commands during the `prd-to-cli` step.
+
+Required validation behavior:
+- Run low-volume GET/list validation against each generated read/list command or GET endpoint mapping.
+- Prefer list/read commands that do not require fabricated identifiers.
+- Limit the returned records to a small number such as `10` whenever the API supports pagination or limit-style parameters.
+- Use the API's documented parameter names such as `limit`, `page_size`, `per_page`, or equivalent instead of inventing new flags.
+- Treat these live read validations as required acceptance checks, not optional extras.
 
 ### Dependencies
 

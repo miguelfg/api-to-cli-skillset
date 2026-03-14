@@ -38,47 +38,34 @@ Conventions:
 
 ## Authentication
 
-6. Authentication scheme [single-choice]
-   - `api_key` header (Recommended)
-   - `bearer` token
-   - `basic` auth
-   - custom header/query [free-text]
-
-7. Credential sources [multi-choice]
+6. Credential sources [multi-choice]
    - `.env` file (Recommended)
    - config file
    - CLI options
 
 ## CLI Behavior
 
-8. Output formats [multi-choice]
+7. Output formats [multi-choice]
    - `json` (Recommended)
    - `csv`
    - `xlsx`
+   - `sqlite`
 
-9. Batch mode input formats [single-choice]
+8. Batch mode input formats [single-choice]
    - `csv + txt/jsonl` (Recommended)
    - `csv` only
    - `txt/jsonl` only
    - disabled
 
-10. Timestamped output files [single-choice]
+9. Timestamped output files [single-choice]
    - Yes, `%Y%m%d_%H%M%S` (Recommended)
    - No
    - custom format [free-text]
 
-## Quality and Tooling
-
-11. Lint/format toolchain [single-choice]
-   - `ruff check --fix` + `ruff format` (Recommended)
-   - `black` + `isort`
-   - custom [free-text]
-
-12. Required validation commands [multi-choice]
-   - `make install` (Required)
-   - `uv run <cli-name> --help` (Required)
-   - `make <resource>-list` (Required)
-   - additional checks [free-text]
+10. Default save-data mode for repeated identical queries [single-choice]
+   - Save in timestamped files (Recommended)
+   - Overwrite if target exists
+   - Concatenate into the same target and add a request timestamp column
 
 ## PRD Recording Template
 
@@ -90,13 +77,13 @@ Use this exact block in generated PRD:
 - CLI Name: `<cli-name>`
 - Python Version: `<version-policy>`
 - HTTP Library: `<requests|httpx|aiohttp|urllib3>`
-- Authentication: `<scheme>`
+- Authentication: `<derived from API/OpenAPI source>`
 - Credential Sources: `<.env|config|cli>`
 - Timeout: `<seconds/policy>`
 - Retry Policy: `<summary>`
-- Output Formats: `<json,csv,xlsx>`
+- Output Formats: `<json,csv,xlsx,sqlite>`
 - Batch Input Formats: `<csv|txt|both|none>`
 - Timestamped Outputs: `<yes/no + format>`
-- Lint/Format Toolchain: `<ruff/...>`
-- Validation Commands: `<commands>`
+- Default Save Data Mode: `<timestamped|overwrite|append_with_request_timestamp>`
+- Lint/Format Toolchain: `ruff check --fix` + `ruff format`
 ```

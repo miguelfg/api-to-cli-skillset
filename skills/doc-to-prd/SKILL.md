@@ -91,10 +91,10 @@ Record decisions using the exact block shape defined in `assets/questions.md`, p
 - `Output Formats`
 - `Batch Input Formats`
 - `Timestamped Outputs`
+- `Default Save Data Mode`
 - `Lint/Format Toolchain`
-- `Validation Commands`
 
-When the user has not provided preferences, ask only the minimum set of questions needed to avoid ambiguous downstream generation. Prefer recommended defaults from `assets/questions.md` when the user delegates the choice.
+Do not ask the user to choose the authentication scheme when the API source already documents it. Record `Authentication` from the OpenAPI spec or API documentation and only ask about implementation choices that remain ambiguous, such as credential source preferences. Always record `Lint/Format Toolchain` as `ruff check --fix` + `ruff format` rather than asking the user to choose it. Do not ask the user to define validation commands in the PRD; downstream validation belongs to `prd-to-cli`. When the user has not provided preferences, ask only the minimum set of questions needed to avoid ambiguous downstream generation. Prefer recommended defaults from `assets/questions.md` when the user delegates the choice.
 
 ### 4. Write the PRD
 
@@ -111,6 +111,7 @@ At minimum, produce:
 - Input/output examples
 - Error handling expectations
 - Logging expectations
+- Validation requirements
 - Makefile/project-management expectations
 
 ### 5. Preserve Downstream Parsing Signals
@@ -136,6 +137,8 @@ Translate the source into decisions and constraints that matter for generation:
 - Batch input support and output format expectations
 - Error categories and likely failure modes
 - Resource naming that maps cleanly to CLI command groups
+
+Always include a downstream validation requirement in the PRD stating that `prd-to-cli` must perform low-volume live validation for generated GET/list paths. This requirement should direct the generated project to execute read/list commands with a small record cap such as `10`, using the API's documented pagination or limit parameter names whenever available.
 
 If the source lacks a detail that affects implementation, state the assumption explicitly in the PRD instead of silently filling the gap.
 

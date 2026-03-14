@@ -109,7 +109,7 @@ Keep instructions aligned with the actual implementation:
 
 - Resource command files currently generate `list`, `get`, and `create` commands.
 - Batch processing currently accepts `.csv` and `.txt` inputs.
-- JSON batch output is implemented; CSV/XLSX output paths exist but behavior is only partially implemented in `src/batch_processor.py`.
+- Batch output supports `json`, `csv`, `xlsx`, and `sqlite` via the generated `src/output.py` helpers.
 - Authentication is inferred from the PRD text and mapped to API key or bearer-token headers when detected.
 - Supported HTTP client libraries are `requests`, `httpx`, `aiohttp`, and `urllib3`.
 
@@ -124,6 +124,14 @@ uv sync
 uv run [cli-name] --help
 uv run pytest tests/ -v
 ```
+
+Then validate generated read paths by executing low-volume GET/list requests for each generated GET-style command or endpoint mapping:
+
+- Prefer `list` commands for each generated resource group.
+- Limit the requested records to a small number such as `10` whenever the API supports a limit/count/page-size style parameter.
+- Use the API's documented parameter names rather than guessing, for example `--limit 10`, `--page-size 10`, or an equivalent query argument.
+- If a generated resource has a direct GET-by-id path but no safe sample identifier, validate the list/read entry point instead of fabricating IDs.
+- Treat this low-volume live request pass as required validation, not an optional extra.
 
 Also run the generated `Makefile` targets when they are relevant and installed:
 
