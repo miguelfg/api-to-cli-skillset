@@ -1,6 +1,6 @@
 ---
 name: api-to-doc
-description: Convert API URLs and documentation into comprehensive OpenAPI 3.0.0 YAML specifications. Auto-detects API type (existing OpenAPI specs, Swagger, REST HTML documentation), intelligently extracts endpoints with complete parameter documentation (path, query, body), request/response examples using HTML parsing and pattern matching, and generates well-structured specifications. Falls back to Playwright or WebFetch when cURL is insufficient. Use when you have an API URL and need to create an OpenAPI YAML file for use with doc-to-prd to generate API client PRDs.
+description: Convert API documentation URLs into OpenAPI 3.0.0 YAML specs by auto-detecting API type, extracting endpoints with parameters/examples, and validating against the API. First step in the API-to-CLI workflow to generate the initial spec for doc-to-prd.
 triggers:
   - User provides an API docs URL, API base URL, or Swagger/OpenAPI endpoint and wants an OpenAPI spec.
   - User asks to convert HTML API docs into an OpenAPI YAML file.
