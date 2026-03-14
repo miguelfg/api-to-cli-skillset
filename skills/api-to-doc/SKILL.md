@@ -409,6 +409,7 @@ For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.m
 - **[doc_patterns.md](references/doc_patterns.md)** — API documentation patterns and extraction strategies
 - **[advanced_features.md](references/advanced_features.md)** — HTML parsing, parameter extraction, and example detection
 - **[configuration.md](references/configuration.md)** — Base URL detection, endpoint tagging, and response schema customization
+- **[error_handling.md](references/error_handling.md)** — Explicit fail conditions, error messages, and success thresholds
 - **[crawling_guide.md](references/crawling_guide.md)** — HTML caching, link extraction, and multi-page crawling guide
 - **[examples.md](references/examples.md)** — Real-world examples and workflow demonstrations
 
