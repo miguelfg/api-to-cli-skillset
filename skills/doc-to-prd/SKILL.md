@@ -1,276 +1,166 @@
 ---
 name: doc-to-prd
-description: Creates a comprehensive PRD (Product Requirements Document) for a Python API client based on a given API specification or documentation (online or offline). Generates structured markdown with installation, configuration, authentication, endpoint reference, caching, rate limiting, error handling, logging, and implementation decisions needed by prd-to-cli.
+description: Create a comprehensive `{project_name}_PRD.md` for a Python API CLI from an OpenAPI spec or API documentation. Use this skill after `api-to-doc` or whenever an API spec/docs must be converted into an implementation-ready PRD for `prd-to-cli`.
 triggers:
-  - User has an OpenAPI/Swagger file (local path or URL) and wants a `{project_name}_PRD.md` for a Python API client.
-  - User asks to transform API documentation/specification into implementation-ready requirements.
-  - User completed `api-to-doc` and needs the next artifact (`{project_name}_PRD.md`) before CLI generation.
+  - User provides an OpenAPI/Swagger file, API docs URL, or local API documentation and wants a PRD artifact.
+  - User asks to convert API documentation into implementation-ready requirements for a Python CLI.
+  - User completed `api-to-doc` and needs the next workflow artifact before `prd-to-cli`.
 do_not_trigger_when:
   mode: intent
   conditions:
-    - Required input is missing (no API spec path/URL provided).
-    - User intent is explanation, review, or discussion only (no artifact generation requested).
-    - User asks directly for CLI code generation from an existing PRD (use `prd-to-cli` instead).
-    - Request is ambiguous about target artifact and user has not confirmed intent.
+    - User only wants explanation, review, or brainstorming rather than PRD generation.
+    - User already has a PRD and wants code generation instead (use `prd-to-cli`).
+    - No API source is available and no reliable source can be inferred.
 ---
 
-## Expected Parameters
+# doc-to-prd
 
-```
-/doc-to-prd <API_SPEC_PATH> [OUTPUT_PATH]
-```
+Create a single markdown artifact named `{project_name}_PRD.md` from an OpenAPI spec, Swagger file, or API documentation. Produce a PRD that is specific enough for `prd-to-cli` to generate a Python Click CLI without re-asking core implementation questions.
 
-**Parameters:**
-- `API_SPEC_PATH` (required): Path to API specification file
-  - Accepts OpenAPI YAML/JSON files (e.g., `openapi.yaml`, `swagger.json`)
-  - Can be a file path or URL to an OpenAPI spec
-  - Example: `/doc-to-prd @openapi.yaml` or `/doc-to-prd https://api.example.com/openapi.json`
-- `OUTPUT_PATH` (optional): Path or directory where the generated `{project_name}_PRD.md` will be saved
-  - Can be a filename: `my_api_PRD.md`
-  - Can be a directory: `./docs/`, will create `{project_name}_PRD.md` inside
-  - Default: `{project_name}_PRD.md` in current directory
-  - If no explicit filename is provided, infer `project_name` from the API docs/spec; if not found, ask the user.
-  - Example: `/doc-to-prd @openapi.yaml ./docs/stripe_PRD.md`
+Keep the skill focused on requirements and interface design. Do not generate application code, tests, CI files, or deployment assets in this step.
 
-**Output:** Generated `{project_name}_PRD.md` file at specified location (or current directory if not specified)
+## Expected Inputs
 
----
+Accept one required source input and one optional output path:
 
-## Overview
-
-Creates a `{project_name}_PRD.md` file that gathers the API documentation in a structured format suitable for Python developers. Plus, it includes requests, response and code examples, usage guidelines, and best practices for integrating the API into Python applications. It also uses askUserQuestion tool to confirm user preferences, like:
-  - preferred Python libraries for HTTP requests (e.g., requests, httpx, aiohttp)
-  - full list of tackled enpoints
-  - tackling batch requests
-  - format saving responses (e.g., CSV, JSON, XSLX)
-  - preferred authentication methods
-  - logging practices
-  - error handling strategies
-  - performance optimization tips
-
-Interactive prompt set:
-- Use `assets/questions.md` as the canonical questionnaire for this skill.
-- Persist user answers in a dedicated PRD section (for example `## Implementation Decisions`), so `prd-to-cli` can generate code without asking again.
-
-Its workflow would follow:
-- Gather API documentation from the provided source (URL or file).
-- Extract relevant information such as endpoints, methods, parameters, and data formats.
-- Structure the information into sections relevant for Python developers.
-- Include code snippets and examples using popular Python libraries (e.g., requests, httpx).
-- Format the generated PRD file with clear headings, bullet points, and tables for easy reference.
-
-Project name resolution for output filename:
-- Try to extract `project_name` from API documentation/spec first (for example `info.title`, API/product title, or service name in docs headings).
-- Normalize to a filesystem-safe slug (lowercase, spaces/special chars converted to `_`).
-- If `project_name` cannot be determined with confidence, ask the user for it before writing output.
-
-Do not hardcode implementation defaults in this skill.
-- Capture preferences/decisions from user answers in `assets/questions.md`.
-- Record final choices in PRD so `prd-to-cli` treats them as source of truth.
-- Keep content implementation-neutral where user has not explicitly decided.
-
-Don't:
-- Include any actual code implementation of the API client.
-- Write other documentation files beyond `{project_name}_PRD.md`.
-- Assume any specific API structure; adapt to the provided documentation, otherwise ask the user for clarifications.
-- Generate unit tests or other testing frameworks.
-- Create deployment scripts or CI/CD pipelines.
-
----
-
-## PRD Template Structure
-
-The skill generates `{project_name}_PRD.md` files using a single canonical template:
-`references/PRD_template.md`.
-
-### PRD Sections
-
-Core sections:
-1. **Introduction** - Overview, purpose, audience, key capabilities
-2. **Installation** - Requirements and setup steps
-3. **Configuration** - Environment variables and config strategy
-4. **Authentication** - Auth method(s), setup, and failure modes
-5. **Endpoint Reference** - Resource-by-resource endpoint details
-6. **CLI Design** - Command groups and standard options
-7. **Input/Output Examples** - Typical request/response and output formatting
-
-Nice-to-have sections:
-1. **Caching** - Strategy, TTL, and cache controls
-2. **Rate Limiting** - Limits, retries, and backoff policy
-3. **Error Handling** - Error classes and user-facing guidance
-4. **Logging & Observability** - Log levels and debugging behavior
-5. **Makefile & Project Management** - Local workflows and automation
-
-### Template Customization
-
-The template uses placeholders for easy customization:
-
-- `[API Name]` - Your API name
-- `[api-prefix]` - API environment variable prefix (e.g., STRIPE, GITHUB)
-- `[cli-name]` - CLI tool name (e.g., stripe-cli, github-cli)
-- `[RESOURCE_NAME]` - API resource names (e.g., users, posts)
-- `[Limit]` - Rate limit values
-- `[org]` - Organization/company name
-
----
-
-## Makefile & Project Management
-
-`doc-to-prd` should only define a consumer contract, not implementation details.
-
-Required contract to include in PRD:
-- Runtime commands must use `uv run [cli-name] ...`
-- Generated CLI should be installable with `uv sync`
-- `prd-to-cli` owns final Makefile targets, dependency pins, and packaging details
-
----
-
-## Output Example: Generated {project_name}_PRD.md Structure
-
-When the skill generates `{project_name}_PRD.md`, it follows this structure:
-
-```markdown
-# API Python Client - Product Requirements Document
-
-## Table of Contents
-1. Introduction
-2. Installation
-3. Configuration
-...
-
-## Introduction
-### Overview
-### Purpose
-### Target Audience
-### Key Features
-
-## Installation
-### System Requirements
-### Installation Methods
-### Verify Installation
-### Dependencies
-
-## Configuration
-### Environment Variables
-### Configuration File
-### Configuration Management Commands
-
-## Authentication
-### API Key Authentication
-### Authentication Methods
-### Error Handling
-### Best Practices
-
-## Endpoint Reference
-### Resource Naming
-### Endpoint Structure
-### [RESOURCE_NAME]
-#### List [Resource]
-#### Get [Resource]
-#### Create [Resource]
-#### Update [Resource]
-#### Delete [Resource]
-
-## Input/Output Examples
-### Single Request Examples
-### Batch Processing Examples
-### Output Format Examples
-
-## Caching
-### Overview
-### Configuration
-### Management Commands
-### Best Practices
-
-## Rate Limiting
-### API Rate Limits
-### Client Rate Limiting
-### Configuration
-### Best Practices
-
-## Error Handling
-### Error Classification
-### Error Response Format
-### Common Errors
-### Best Practices
-
-## Logging
-### Log Levels
-### Configuration
-### Log Format
-### Best Practices
-
-## Best Click Practices
-### CLI Command Design
-### Standard Options
-### Error Messages
-### Performance Best Practices
-
-## Makefile & Project Management
-### Project Structure
-### Makefile Commands
-### uvicorn Integration
-### Common Workflow
+```text
+/doc-to-prd <API_SOURCE> [OUTPUT_PATH]
 ```
 
----
+Interpret `API_SOURCE` as one of:
+- Local OpenAPI YAML or JSON file
+- URL to OpenAPI/Swagger JSON or YAML
+- Local markdown or HTML documentation
+- Documentation URL when structured API docs are the only available source
 
-## Integration with api-to-cli Workflow
+Interpret `OUTPUT_PATH` as one of:
+- Exact markdown filename
+- Output directory for `{project_name}_PRD.md`
+- Omitted, meaning write `{project_name}_PRD.md` in the current working directory
 
-The `doc-to-prd` skill fits into the complete workflow:
+## Use Bundled Resources
 
+Use bundled resources progressively instead of reproducing them from memory:
+
+- Use `references/PRD_template.md` as the canonical section layout and placeholder inventory.
+- Use `assets/questions.md` as the canonical decision questionnaire.
+- Treat `templates/Makefile_sample` as reference material for expected workflow conventions only.
+- Treat `templates/default_config.json` as reference material for configuration fields that are common in generated CLIs.
+
+Do not copy bundled reference material verbatim into the PRD unless it is relevant to the API being documented.
+
+## Workflow
+
+### 1. Validate the Source
+
+Confirm that the provided source contains enough information to describe:
+- Base URL or environment-specific base URLs
+- Authentication method
+- Endpoint/resource inventory
+- Request parameters or payload shape
+- Response shape or representative examples
+
+If the source is incomplete, continue with the available facts, clearly mark gaps, and avoid inventing endpoint behavior.
+
+### 2. Resolve `project_name`
+
+Infer `project_name` from the source when possible, preferring:
+1. OpenAPI `info.title`
+2. Product/service title in docs
+3. Prominent heading or brand name tightly coupled to the API
+
+Normalize the result into a filesystem-safe slug:
+- Lowercase
+- Replace spaces and punctuation with `_`
+- Remove duplicate separators
+
+If no confident name can be inferred, ask the user for the project name before writing the file.
+
+### 3. Capture Implementation Decisions
+
+Use `assets/questions.md` as the canonical questionnaire. Capture the answers in the generated PRD under an `## Implementation Decisions` section.
+
+Record decisions using the exact block shape defined in `assets/questions.md`, preserving these fields:
+- `CLI Name`
+- `Python Version`
+- `HTTP Library`
+- `Authentication`
+- `Credential Sources`
+- `Timeout`
+- `Retry Policy`
+- `Output Formats`
+- `Batch Input Formats`
+- `Timestamped Outputs`
+- `Lint/Format Toolchain`
+- `Validation Commands`
+
+When the user has not provided preferences, ask only the minimum set of questions needed to avoid ambiguous downstream generation. Prefer recommended defaults from `assets/questions.md` when the user delegates the choice.
+
+### 4. Write the PRD
+
+Use `references/PRD_template.md` as the base structure. Fill it with API-specific content and keep placeholders only where the source is genuinely incomplete.
+
+At minimum, produce:
+- A top-level title naming the API/client
+- Introduction and purpose
+- Implementation decisions
+- Installation expectations
+- Configuration strategy
+- Authentication requirements
+- Endpoint reference
+- Input/output examples
+- Error handling expectations
+- Logging expectations
+- Makefile/project-management expectations
+
+### 5. Preserve Downstream Parsing Signals
+
+Write the PRD so `prd-to-cli` can parse it reliably. Include these signals whenever the source supports them:
+
+- A base URL line in a parseable form such as `**Base URL:** https://...` or `**Base URL:** \`https://...\``
+- A resource inventory line such as `**Resources:** \`users, orders, invoices\``
+- Explicit resource sections in the form `### USERS Resource`
+- Endpoint subsections in the form `#### 1. List Users`
+- Endpoint inventory bullets with concrete paths such as `- \`/v1/users\``
+- An `## Implementation Decisions` section with an explicit `HTTP Library` line
+
+Prefer exact API paths over guessed resource names. If the docs expose `/v1/air-quality`, keep that exact path instead of simplifying it to `/airquality`.
+
+### 6. Keep the PRD Implementation-Ready
+
+Translate the source into decisions and constraints that matter for generation:
+- Authentication headers, tokens, or query parameters
+- Required environment variables
+- Pagination behavior
+- Rate limiting and retry expectations
+- Batch input support and output format expectations
+- Error categories and likely failure modes
+- Resource naming that maps cleanly to CLI command groups
+
+If the source lacks a detail that affects implementation, state the assumption explicitly in the PRD instead of silently filling the gap.
+
+## Output Rules
+
+Write exactly one primary artifact:
+- `{project_name}_PRD.md`
+
+Avoid generating adjacent implementation files at this step. Reference sample config or Makefile conventions in prose when helpful, but leave concrete project scaffolding to `prd-to-cli`.
+
+## Quality Bar
+
+Ensure the generated PRD is:
+- Grounded in the provided source
+- Specific enough for deterministic CLI generation
+- Consistent with `uv run [cli-name] ...` workflow conventions
+- Free of invented endpoints, parameters, or auth schemes
+- Clear about assumptions, omissions, and unresolved questions
+
+## Handoff
+
+After writing `{project_name}_PRD.md`, treat it as the handoff artifact for:
+
+```text
+/prd-to-cli @{project_name}_PRD.md <output-directory>
 ```
-API URL
-  ↓
-[api-to-doc] → OpenAPI YAML/JSON
-  ↓
-[doc-to-prd] → {project_name}_PRD.md (comprehensive, this skill)
-  ↓
-[prd-to-cli] → Python Click CLI Project
-  ↓
-[Makefile] → Manage, test, deploy
-```
 
----
-
-## Usage Tips
-
-### Customizing the Template
-
-After generating `{project_name}_PRD.md`, customize for your API:
-
-1. Replace placeholders: `[API Name]`, `[cli-name]`, `[RESOURCE_NAME]`
-2. Update rate limits and authentication details
-3. Add API-specific configuration options
-4. Customize Makefile for your project structure
-5. Add project-specific logging or caching requirements
-
-### Best Practices
-
-✓ Review generated `{project_name}_PRD.md` carefully
-✓ Update examples with real API values
-✓ Test all endpoint examples before finalizing
-✓ Keep `{project_name}_PRD.md` in sync with implementation
-✓ Use version control for `{project_name}_PRD.md` changes
-✓ Include `{project_name}_PRD.md` in project documentation
-✓ Reference `{project_name}_PRD.md` in README.md
-
----
-
-## References
-
-- **[PRD_template.md](references/PRD_template.md)** - Canonical template used by `doc-to-prd`
-- Related skills: `prd-to-cli`, `api-to-doc`
-
-## Next Possible Steps
-
-Run skills in sequence from this stage:
-
-1. Generate CLI project from your PRD:
-```bash
-/prd-to-cli @{project_name}_PRD.md <output-folder>
-```
-2. If PRD content is incomplete, regenerate or refine upstream inputs:
-```bash
-/api-to-doc <api-docs-url> [output-folder]
-```
+If the source material is too weak to support a reliable PRD, say so plainly and identify the missing information that blocks the next step.
