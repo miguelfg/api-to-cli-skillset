@@ -47,6 +47,43 @@ Claude receives the API documentation URL from the user. Examples:
 - `https://example-api.com/docs`
 - `https://petstore.swagger.io`
 
+### 1.5. Script Execution Order
+
+Execute the following scripts in sequence to convert the API URL to OpenAPI YAML:
+
+**Primary script:** `scripts/fetch_api_info.py`
+```bash
+python scripts/fetch_api_info.py <API_URL>
+```
+This script:
+- Fetches the documentation from the provided URL using cURL
+- Auto-detects whether the content is an OpenAPI/Swagger spec, HTML docs, or Markdown
+- Extracts HTTP endpoints, parameters, and examples using pattern matching
+- Caches fetched HTML to `/tmp/api-to-doc-cache/` for inspection and debugging
+- Outputs structured JSON with detected endpoints and metadata
+
+If the primary extraction returns sparse results (few endpoints), execute the crawling script:
+
+**Secondary script:** `scripts/crawler.py`
+```bash
+python scripts/crawler.py <API_URL> 10
+```
+This script:
+- Discovers all API documentation pages across the same domain
+- Extracts endpoints from all discovered pages
+- Merges and deduplicates results
+
+Finally, generate the OpenAPI YAML:
+
+**Generation script:** `scripts/generate_openapi.py`
+```bash
+python scripts/generate_openapi.py <output-filename>.yaml <base_url> <endpoints_json>
+```
+This script:
+- Creates a valid OpenAPI 3.0.0 YAML file
+- Populates endpoints, parameters, and response schemas
+- Validates endpoint normalization and existence
+
 ### 2. Auto-Detection
 
 The skill attempts to:
