@@ -31,6 +31,22 @@ The **api-to-doc** skill converts API URLs into standardized OpenAPI 3.0.0 YAML 
 - Generate valid OpenAPI 3.0.0 YAML with enhanced schema information
 - First step in the api-to-cli workflow
 
+## Success Criteria
+
+A skill execution is **successful** when:
+- ✅ **≥ 5 unique endpoints** extracted from documentation
+- ✅ **≥ 50% of probed GET endpoints** respond with 2xx/3xx HTTP status codes
+- ✅ **Generated OpenAPI YAML** is syntactically valid and well-formed
+- ✅ **All endpoints** have HTTP method (GET, POST, etc.) and path defined
+- ✅ **Output file** created: `<project-name>-api.yaml` ready for `doc-to-prd` skill
+
+A skill execution **fails** when:
+- ❌ **Zero endpoints extracted** after auto-detection and multi-page crawling
+- ❌ **All probed GET endpoints** return 404 (not found)
+- ❌ **URL is unreachable** (network error, timeout, SSL failure)
+- ❌ **Required input missing** (no API_URL provided)
+- ❌ **No output file** generated (spec was invalid or incomplete)
+
 ## Input Requirements
 
 When invoked, Claude receives:
