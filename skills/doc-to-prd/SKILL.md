@@ -85,12 +85,12 @@ Record decisions using the exact block shape defined in `assets/questions.md`, p
 - `Python Version`
 - `HTTP Library`
 - `Authentication`
-- `Credential Sources`
+- `Credentials Configuration`
 - `Timeout`
 - `Retry Policy`
 - `Output Formats`
+- `Output Accepted Formats and Default`
 - `Batch Input Formats`
-- `Timestamped Outputs`
 - `Default Save Data Mode`
 - `Lint/Format Toolchain`
 

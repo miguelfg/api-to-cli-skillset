@@ -38,10 +38,10 @@ Conventions:
 
 ## Authentication
 
-6. Credential sources [multi-choice]
-   - `.env` file (Recommended)
+6. Credentials configuration [single-choice]
+   - environment variables (Recommended)
    - config file
-   - CLI options
+   - interactively asking
 
 ## CLI Behavior
 
@@ -57,10 +57,11 @@ Conventions:
    - `txt/jsonl` only
    - disabled
 
-9. Timestamped output files [single-choice]
-   - Yes, `%Y%m%d_%H%M%S` (Recommended)
-   - No
-   - custom format [free-text]
+9. Output accepted formats and default [single-choice]
+   - default `xlsx`; accept `xlsx` only (Recommended)
+   - default `xlsx`; accept `xlsx` + `csv`
+   - default `xlsx`; accept `xlsx` + `sqlite`
+   - default `xlsx`; accept `xlsx` + `csv` + `sqlite`
 
 10. Default save-data mode for repeated identical queries [single-choice]
    - Save in timestamped files (Recommended)
@@ -78,12 +79,12 @@ Use this exact block in generated PRD:
 - Python Version: `<version-policy>`
 - HTTP Library: `<requests|httpx|aiohttp|urllib3>`
 - Authentication: `<derived from API/OpenAPI source>`
-- Credential Sources: `<.env|config|cli>`
+- Credentials Configuration: `<env_vars|config|interactive_prompt>`
 - Timeout: `<seconds/policy>`
 - Retry Policy: `<summary>`
 - Output Formats: `<json,csv,xlsx,sqlite>`
+- Output Accepted Formats and Default: `<default_xlsx__accepted_xlsx|default_xlsx__accepted_xlsx_csv|default_xlsx__accepted_xlsx_sqlite|default_xlsx__accepted_xlsx_csv_sqlite>`
 - Batch Input Formats: `<csv|txt|both|none>`
-- Timestamped Outputs: `<yes/no + format>`
 - Default Save Data Mode: `<timestamped|overwrite|append_with_request_timestamp>`
 - Lint/Format Toolchain: `ruff check --fix` + `ruff format`
 ```

@@ -59,11 +59,12 @@ Capture user-confirmed decisions from `skills/doc-to-prd/assets/questions.md`:
 - Python Version: `[python-version-policy]`
 - HTTP Library: `[requests|httpx|aiohttp|urllib3]`
 - Authentication: `[derived from API/OpenAPI source]`
+- Credentials Configuration: `[env_vars|config|interactive_prompt]`
 - Timeout: `[timeout-policy]`
 - Retry Policy: `[retry-policy]`
 - Output Formats: `[json,csv,xlsx,sqlite]`
+- Output Accepted Formats and Default: `[default_xlsx__accepted_xlsx|default_xlsx__accepted_xlsx_csv|default_xlsx__accepted_xlsx_sqlite|default_xlsx__accepted_xlsx_csv_sqlite]`
 - Batch Input Formats: `[csv|txt|both|none]`
-- Timestamped Outputs: `[yes/no + format]`
 - Default Save Data Mode: `[timestamped|overwrite|append_with_request_timestamp]`
 - Lint/Format Toolchain: `ruff check --fix` + `ruff format`
 
