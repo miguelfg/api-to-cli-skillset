@@ -84,6 +84,23 @@ This script:
 - Populates endpoints, parameters, and response schemas
 - Validates endpoint normalization and existence
 
+### 1.6. Fallback: Manual Configuration
+
+If auto-detection fails completely and crawling yields no endpoints, the `scripts/interactive_flow.py` script provides interactive configuration:
+
+```bash
+python scripts/interactive_flow.py > api_config.json
+```
+
+This script prompts for:
+- API title, version, description
+- Base URL
+- Manual endpoint definitions (method, path, description, tag)
+
+**When to use:** Only after auto-detection and crawling have failed. Generates a minimal API configuration that can be used as input to `generate_openapi.py`.
+
+**Note:** This is a last-resort fallback. The generated spec will be minimal and should be enhanced during the PRD generation step.
+
 ### 2. Auto-Detection
 
 The skill attempts to:
