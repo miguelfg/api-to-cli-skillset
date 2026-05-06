@@ -312,6 +312,21 @@ If cURL returns incomplete or empty results:
 3. Consider using Playwright skill (webapp-testing) to render JavaScript-heavy docs
 4. Or use WebFetch/WebSearch for additional context gathering
 
+### Skill Integration: `wget-crawler` and `html-to-markdown-parser`
+
+When raw retrieval is partial, blocked, or noisy, use these local skills as structured preprocessing:
+
+1. **`wget-crawler` first** for static, multi-page documentation capture
+   - Use it to mirror API docs sections locally when the user asks to crawl/clone/archive docs.
+   - Prefer domain-limited, section-limited recursion and polite rate limits.
+   - If mirrored pages are captured successfully, run extraction from the local mirror files.
+2. **`html-to-markdown-parser` second** for cleanup and normalization
+   - Use it on mirrored or cached HTML to remove navigation/ads/clutter and produce clean markdown.
+   - Then run endpoint extraction against markdown-normalized content to improve method/path detection.
+3. **Fail-fast still applies**
+   - If these preprocessing steps still produce zero reliable endpoints, stop and return explicit failure.
+   - Do not fabricate endpoints.
+
 ### Fail-Fast: No Fabricated Endpoints
 
 If patterns don't match or endpoint extraction is empty/uncertain, stop with an error. Do not create guessed endpoints.
@@ -338,6 +353,8 @@ After generating `<project-name>-api.yaml`, the user should invoke the `doc-to-p
 2. Use Playwright (webapp-testing skill) to render the page first
 3. Use WebFetch for alternative content fetching
 4. Retry with a direct OpenAPI/Swagger URL if available
+5. Use `wget-crawler` to capture a local static copy of docs, then parse locally
+6. Use `html-to-markdown-parser` on captured HTML and retry extraction on cleaned markdown
 
 ### Incomplete parameter extraction
 
@@ -461,6 +478,19 @@ python scripts/crawler.py <start_url> 25 2
 3. Repeat until max pages reached
 
 **Output:** Complete list of endpoints discovered across entire documentation
+
+### Optional Companion Workflow with Local Skills
+
+For large or cluttered docs, chain local skills with the built-in scripts:
+
+1. Use `wget-crawler` to download a bounded docs subtree to a local folder.
+2. Use `html-to-markdown-parser` in batch mode on that folder.
+3. Run extraction scripts against the mirrored/cached content to improve consistency.
+
+This is especially useful when:
+- Documentation is spread across many static HTML pages
+- Navigation and boilerplate dominate page text
+- Remote fetches are flaky but local copies are stable
 
 For detailed crawling guide, see [crawling_guide.md](references/crawling_guide.md).
 
